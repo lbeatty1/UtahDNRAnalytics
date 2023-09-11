@@ -244,6 +244,11 @@ ggplot(data=operator_dat%>%filter(bond<1000000))+
   labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs 37500 to plug.")+
   theme_bw()
 
+ggsave(filename="UtahDNRAnalytics/Figures/BondsLiabilities1.jpg",
+       device="jpg",
+       height=5,
+       width=7)
+
 ggplot(data=operator_dat%>%filter(bond<1000000))+
   geom_point(aes(x=bond, y=liability2))+
   geom_abline(slope=1, intercept=0)+
@@ -255,6 +260,11 @@ ggplot(data=operator_dat%>%filter(bond<1000000))+
   labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs 75000 to plug.")+
   theme_bw()
 
+ggsave(filename="UtahDNRAnalytics/Figures/BondsLiabilities2.jpg",
+       device="jpg",
+       height=5,
+       width=7)
+
 ggplot(data=operator_dat%>%filter(bond_delta<10000000))+
   geom_point(aes(x=tot_BOE, y=bond_delta))+
   ggtitle("Bonds increase the most for high-production firms")+
@@ -263,6 +273,11 @@ ggplot(data=operator_dat%>%filter(bond_delta<10000000))+
   xlab("Total Yearly Production (BOE)")+
   theme_bw()
 #bond deltas are weakly positive, bonds mostly increase for large firms
+
+ggsave(filename="UtahDNRAnalytics/Figures/BondDeltaProduction.jpg",
+       device="jpg",
+       height=5,
+       width=7)
 
 ggplot(data=operator_dat)+
   geom_point(aes(x=tot_BOE, y=bondliability1))+
@@ -274,6 +289,11 @@ ggplot(data=operator_dat)+
   theme_bw()
 #difference between bonds and liabilities is decreasing in total production
 
+ggsave(filename="UtahDNRAnalytics/Figures/NetLiability1Production.jpg",
+       device="jpg",
+       height=5,
+       width=7)
+
 ggplot(data=operator_dat%>%filter(tot_BOE<200000000))+
   geom_point(aes(x=tot_BOE, y=bondliability1))+
   ggtitle("Liabilities exceed bond amounts large firms (zoomed in)")+
@@ -284,16 +304,24 @@ ggplot(data=operator_dat%>%filter(tot_BOE<200000000))+
   theme_bw()
 #difference between bonds and liabilities is decreasing in total production
 
+ggsave(filename="UtahDNRAnalytics/Figures/NetLiability1Production_zoomed.jpg",
+       device="jpg",
+       height=5,
+       width=7)
+
 ggplot(data=operator_dat%>%filter(tot_BOE<10000000))+
   geom_point(aes(x=tot_BOE, y=bondliability1))+
   ggtitle("Liabilities exceed bond amounts large firms (more zoomed in)")+
   scale_y_continuous(labels = dollar)+
   ylab("Difference between bonds and plugging liabilities")+
   xlab("Total BOE")+
-  labs(caption="For very small firms, many still have liabilities that exceed bonds.")+
+  labs(caption="Calculated assuming each well costs 37500 to plug.  For very small firms, many still have liabilities that exceed bonds.")+
   theme_bw()
 #difference between bonds and liabilities is decreasing in total production
-
+ggsave(filename="UtahDNRAnalytics/Figures/NetLiability1Production_smallfirms.jpg",
+       device="jpg",
+       height=5,
+       width=7)
 
 
 #####################
@@ -327,6 +355,11 @@ ggplot(data=operator_dat%>%filter(bond<1000000))+
   labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs 37500 to plug.")+
   theme_bw()
 
+ggsave(filename="UtahDNRAnalytics/Figures/InactiveMarginalLiabilities1.jpg",
+       device="jpg",
+       height=5,
+       width=7)
+
 ggplot(data=operator_dat%>%filter(bond<1000000))+
   geom_point(aes(x=bond, y=liability2))+
   geom_abline(slope=1, intercept=0)+
@@ -337,6 +370,10 @@ ggplot(data=operator_dat%>%filter(bond<1000000))+
   xlab("Required Bonds")+
   labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs 75000 to plug.")+
   theme_bw()
+ggsave(filename="UtahDNRAnalytics/Figures/InactiveMarginalLiabilities2.jpg",
+       device="jpg",
+       height=5,
+       width=7)
 
 
 ############################################################################
@@ -354,3 +391,4 @@ print(paste("Inactive wells held by these firms could cost ", sum(small_risky_op
 print(paste("Inactive wells held by these firms could cost ", sum(small_risky_operators$liability3), "dollars to plug"))
 print(paste("Inactive wells held by these firms could cost ", sum(small_risky_operators$liability4), "dollars to plug"))
 
+write.csv(operator_dat%>%select(Operator, avg_depth, tot_BOE, tot_wells, tot_inactive, tier, old_bond, bond, liability1, liability2, liability1_marginal, liability2_marginal, "UtahDNRAnalytics/Operator_dat.csv"))
