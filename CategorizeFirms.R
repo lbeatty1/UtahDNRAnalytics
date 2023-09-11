@@ -65,6 +65,7 @@ welldepth=wellhistory%>%
   group_by(API)%>%
   summarise(depth=max(MD,na.rm=T),
             FirstProdDate=min(FirstProdDate, na.rm=T))
+
 welldepth=welldepth%>%
   mutate(depth=replace(depth, depth==-Inf, NA),
          FirstProdDate=replace(FirstProdDate, FirstProdDate==Inf, NA))
@@ -105,15 +106,26 @@ rm(missingdata)
 well_data = well_data%>%
   filter(FirstProdDate<as.Date("2023-06-01")|is.na(FirstProdDate))
 
+#save average well depth
+avgdepth = mean(well_data$depth, na.rm=T)
+#populate missings with average
+well_data = well_data%>%
+  mutate(depth=replace(depth, is.na(depth), avgdepth))
+
+
 #calculate BOE/day
 well_data=well_data%>%
-  mutate(Oil=replace(Oil, is.na(Oil), 0 ),
+  mutate(Oil=replace(Oil, is.na(Oil), 0),
          Gas=replace(Gas, is.na(Gas), 0),
          BOEtot=Oil+Gas*6,
          BOEperday = BOEtot/(n_reports*30),
          BOEperday = replace(BOEperday, is.na(n_reports), 0),
          inactive_marginal_flag=BOEperday<=2,
-         fee_state_flag=LeaseType=="FEE"|LeaseType=="STATE")
+         fee_state_flag=LeaseType=="FEE"|LeaseType=="STATE",
+         depth1000_flag=depth<1000,
+         depth3000_flag=depth>=1000&depth<3000,
+         depth10000_flag=depth>=3000&depth<10000,
+         depthmax_flag=depth>=10000)
 
 well_data%>%group_by(inactive_marginal_flag)%>%summarise(n=n())
 
@@ -122,7 +134,11 @@ operator_dat = well_data%>%
   group_by(Operator)%>%
   summarise(avg_depth=mean(depth, na.rm=T),
             tot_BOE=sum(BOEtot),
-            tot_wells=n())
+            tot_wells=n(),
+            depth1000_wells = sum(depth1000_flag,na.rm=T),
+            depth3000_wells = sum(depth3000_flag,na.rm=T),
+            depth10000_wells = sum(depth10000_flag,na.rm=T),
+            depthmax_wells = sum(depthmax_flag,na.rm=T))
 
 inactive_operator_dat=well_data%>%
   group_by(Operator, inactive_marginal_flag)%>%
@@ -148,18 +164,15 @@ inactive_operator_dat=well_data%>%
   summarise(tot_inactive_feestate=n())%>%
   filter(inactive_marginal_flag==1,
          fee_state_flag==1)%>%
+  ungroup()%>%
   select(Operator, tot_inactive_feestate)
 
 operator_dat=left_join(operator_dat, inactive_operator_dat, by="Operator")
+operator_dat = operator_dat%>%
+  mutate(tot_inactive_feestate=replace(tot_inactive_feestate, is.na(tot_inactive_feestate),0))
 
 
-#save average well depth
-avgdepth = mean(well_data$depth, na.rm=T)
-#replace missing missing average depths with overall averages
-operator_dat=operator_dat%>%
-  mutate(avg_depth=replace(avg_depth, is.na(avg_depth), avgdepth))
-
-## Calculate bonds
+## Calculate new blanket bonds
 operator_dat = operator_dat%>%
   mutate(tier1blanket = sapply(tot_wells, tier1_blanket),
          tier1marginal = sapply(avg_depth,tier1_marginalbond)*tot_inactive_feestate,
@@ -168,11 +181,23 @@ operator_dat = operator_dat%>%
          tier3blanket = sapply(tot_wells, tier3_blanket),
          tier3marginal = sapply(avg_depth,tier3_marginalbond)*tot_inactive_feestate)
 
+
+## Calculate old bonds
 operator_dat = operator_dat%>%
-  mutate(old_bond=120000)
+  mutate(depth1000_bond = depth1000_wells*1500,
+         depth3000_bond = depth3000_wells*15000,
+         depth10000_bond = depth10000_wells*30000,
+         depthmax_bond = depthmax_wells*60000,
+         depth1000_flag = depth1000_wells>0,
+         depthgreater1000_flag = tot_wells-depth1000_wells>0)
 
 operator_dat = operator_dat%>%
-  mutate(bond = (tier1blanket+tier1marginal)*(tier==1)+(tier2blanket+tier2marginal)*(tier==2)+(tier3blanket+tier3marginal)*(tier==3)+old_bond*(tier==4),
+  mutate(old_blanket1000 = 15000*depth1000_flag,
+         old_blanketgreater1000 = 120000*depthgreater1000_flag,
+         old_bond = pmin(old_blanket1000, depth1000_bond)+ pmin(old_blanketgreater1000, depth3000_bond+depth10000_bond+depthmax_bond))
+
+operator_dat = operator_dat%>%
+  mutate(bond = (tier1blanket+tier1marginal)*(tier==1)+(tier2blanket+tier2marginal)*(tier==2)+(tier3blanket+tier3marginal)*(tier==3)+(depth1000_bond+depth3000_bond+depth10000_bond+depthmax_bond)*(tier==4),
          bond_delta = bond-old_bond)
 
 
@@ -186,8 +211,7 @@ operator_dat = operator_dat%>%
 #liability3 assumes $6 per foot of depth
 #liability4 assumes $12 per foot of depth
 well_data = well_data%>%
-  mutate(depth=replace(depth, is.na(depth), avgdepth),
-         liability1 = 37500,
+  mutate(liability1 = 37500,
          liability2 = 75000,
          liability3 = depth*6,
          liability4 = depth*12)
@@ -242,5 +266,3 @@ print(paste("Inactive wells held by these firms could cost ", sum(small_risky_op
 print(paste("Inactive wells held by these firms could cost ", sum(small_risky_operators$liability2), "dollars to plug"))
 print(paste("Inactive wells held by these firms could cost ", sum(small_risky_operators$liability3), "dollars to plug"))
 print(paste("Inactive wells held by these firms could cost ", sum(small_risky_operators$liability4), "dollars to plug"))
-
-print(paste("The change in the bonding rule reduced the potential burden of the state by ", sum(operator_dat$bond_delta, na.rm=T)))
