@@ -3,6 +3,7 @@ rm(list=ls())
 library(tidyverse)
 library(lubridate)
 library(ggplot2)
+library(scales)
 
 ###################################
 ## Code to analyze Utah DNR data ##
@@ -112,7 +113,7 @@ well_data = well_data%>%
   mutate(depth=replace(depth, is.na(depth), avgdepth))
 
 
-#calculate BOE/day
+#calculate BOE/day, make flags for status and depth
 well_data=well_data%>%
   mutate(Oil=replace(Oil, is.na(Oil), 0),
          Gas=replace(Gas, is.na(Gas), 0),
@@ -231,26 +232,111 @@ operator_dat=operator_dat%>%
          bondliability3 = bond-liability3,
          bondliability4 = bond-liability4)
 
-ggplot(data=operator_dat)+
-  geom_point(aes(x=bond, y=liability3))+
-  geom_abline(slope=1, intercept=0)+
-  theme_bw()
-#as expected, liabilities exceed bonded amounts for larger firms
 
-ggplot(data=operator_dat)+
+ggplot(data=operator_dat%>%filter(bond<1000000))+
+  geom_point(aes(x=bond, y=liability1))+
+  geom_abline(slope=1, intercept=0)+
+  ggtitle("Liabilities exceed bond amounts for most firms")+
+  scale_y_continuous(labels = dollar)+
+  ylab("Total Plugging Liabilities")+
+  scale_x_continuous(label=dollar)+
+  xlab("Required Bonds")+
+  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs 37500 to plug.")+
+  theme_bw()
+
+ggplot(data=operator_dat%>%filter(bond<1000000))+
+  geom_point(aes(x=bond, y=liability2))+
+  geom_abline(slope=1, intercept=0)+
+  ggtitle("Liabilities exceed bond amounts for most firms")+
+  scale_y_continuous(labels = dollar)+
+  ylab("Total Plugging Liabilities")+
+  scale_x_continuous(label=dollar)+
+  xlab("Required Bonds")+
+  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs 75000 to plug.")+
+  theme_bw()
+
+ggplot(data=operator_dat%>%filter(bond_delta<10000000))+
   geom_point(aes(x=tot_BOE, y=bond_delta))+
+  ggtitle("Bonds increase the most for high-production firms")+
+  scale_y_continuous(labels = dollar)+
+  ylab("Difference Between New and Old Bond Amounts")+
+  xlab("Total Yearly Production (BOE)")+
   theme_bw()
 #bond deltas are weakly positive, bonds mostly increase for large firms
 
 ggplot(data=operator_dat)+
-  geom_point(aes(x=tot_BOE, y=bondliability3))+
+  geom_point(aes(x=tot_BOE, y=bondliability1))+
+  ggtitle("Liabilities exceed bond amounts large firms")+
+  scale_y_continuous(labels = dollar)+
+  ylab("Difference between bonds and plugging liabilities")+
+  labs(caption="Calculated assuming each well costs 37500 to plug.")+
+  xlab("Total BOE")+
+  theme_bw()
+#difference between bonds and liabilities is decreasing in total production
+
+ggplot(data=operator_dat%>%filter(tot_BOE<200000000))+
+  geom_point(aes(x=tot_BOE, y=bondliability1))+
+  ggtitle("Liabilities exceed bond amounts large firms (zoomed in)")+
+  scale_y_continuous(labels = dollar)+
+  ylab("Difference between bonds and plugging liabilities")+
+  xlab("Total BOE")+
+  labs(caption="Calculated assuming each well costs 37500 to plug.")+
   theme_bw()
 #difference between bonds and liabilities is decreasing in total production
 
 ggplot(data=operator_dat%>%filter(tot_BOE<10000000))+
-  geom_point(aes(x=tot_BOE, y=bondliability3))+
+  geom_point(aes(x=tot_BOE, y=bondliability1))+
+  ggtitle("Liabilities exceed bond amounts large firms (more zoomed in)")+
+  scale_y_continuous(labels = dollar)+
+  ylab("Difference between bonds and plugging liabilities")+
+  xlab("Total BOE")+
+  labs(caption="For very small firms, many still have liabilities that exceed bonds.")+
   theme_bw()
-#there are still many small operators whose liabilities exceed bond amounts
+#difference between bonds and liabilities is decreasing in total production
+
+
+
+#####################
+## What if we just consider marginal and inactive wells?
+##
+operator_liabilities_marginalinactive = well_data%>%
+  filter(inactive_marginal_flag==1)%>%
+  group_by(Operator)%>%
+  summarise(liability1_marginal=sum(liability1),
+            liability2_marginal=sum(liability2),
+            liability3_marginal=sum(liability3),
+            liability4_marginal=sum(liability4))
+
+operator_dat = left_join(operator_dat, operator_liabilities_marginalinactive, by="Operator")
+operator_dat=operator_dat%>%
+  mutate(bondliability1_marginal = bond-liability1_marginal,
+         bondliability2_marginal = bond-liability2_marginal,
+         bondliability3_marginal = bond-liability3_marginal,
+         bondliability4_marginal = bond-liability4_marginal)
+
+
+
+ggplot(data=operator_dat%>%filter(bond<1000000))+
+  geom_point(aes(x=bond, y=liability1_marginal))+
+  geom_abline(slope=1, intercept=0)+
+  ggtitle("New bonds cover marginal and inactive well plugging liability")+
+  scale_y_continuous(labels = dollar)+
+  ylab("Total Plugging Liabilities for Marginal/Inactive Wells")+
+  scale_x_continuous(label=dollar)+
+  xlab("Required Bonds")+
+  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs 37500 to plug.")+
+  theme_bw()
+
+ggplot(data=operator_dat%>%filter(bond<1000000))+
+  geom_point(aes(x=bond, y=liability2))+
+  geom_abline(slope=1, intercept=0)+
+  ggtitle("New bonds don't cover marginal and inactive well plugging liability \n if plugging costs are high")+
+  scale_y_continuous(labels = dollar)+
+  ylab("Total Plugging Liabilities for Marginal/Inactive Wells")+
+  scale_x_continuous(label=dollar)+
+  xlab("Required Bonds")+
+  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs 75000 to plug.")+
+  theme_bw()
 
 
 ############################################################################
@@ -258,7 +344,7 @@ ggplot(data=operator_dat%>%filter(tot_BOE<10000000))+
 ############################################################################
 small_risky_operators = operator_dat%>%
   filter(tot_BOE<5000000,
-         bondliability3<0)
+         bondliability1<0)
 
 print(paste("Small operators where plugging liabilities exceed bonds hold ", sum(small_risky_operators$tot_wells), "wells and", sum(small_risky_operators$tot_wells)/sum(operator_dat$tot_wells), "percent of the state's total wells"))
 print(paste("Small operators where plugging liabilities exceed bonds hold ", sum(small_risky_operators$tot_inactive), "inactive wells and", sum(small_risky_operators$tot_inactive)/sum(operator_dat$tot_inactive), "percent of the state's inactive wells"))
