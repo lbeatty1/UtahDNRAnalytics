@@ -46,8 +46,8 @@ wells = wells%>%
          API10=substr(API, 1, 10),
          AbandonDate=as.Date(AbandonDate,"%Y-%m-%d"))%>%
   filter(is.na(AbandonDate),
-         welltype%in%c("OW", "GW", "OGW", "OWI", "GWI", "OGI", "GGI", "OWD", "GWD"),
-         !wellstatus%in%c("PA", "I", "A", "LA", "APD", "RET", "NEW", "DRL", "OPS"))
+         #welltype%in%c("OW", "GW", "OGW", "OWI", "GWI", "OGI", "GGI", "OWD", "GWD"),
+         !wellstatus%in%c("PA", "LA", "APD", "RET", "NEW", "DRL", "OPS"))
 
 print(paste("Updated number of unique operators in well data:", length(unique(wells$OperatorNo))))
 print(paste("Updated number of unique wells in wells data: ", length(unique(wells$API))))
@@ -88,7 +88,6 @@ past_12_prod = prod_data%>%
             Water=sum(Water),
             n_reports=n())
 
-
 well_data=left_join(wells, past_12_prod, by=c("API10"="API"))
 
 ##########
@@ -120,7 +119,9 @@ well_data=well_data%>%
          BOEtot=Oil+Gas*6,
          BOEperday = BOEtot/(n_reports*30),
          BOEperday = replace(BOEperday, is.na(n_reports), 0),
-         inactive_marginal_flag=BOEperday<=2,
+         marginal_flag=BOEperday<=2,
+         inactive_flag = wellstatus%in%c("S", "TA", "I"),
+         inactive_marginal_flag=pmax(marginal_flag, inactive_flag),
          fee_state_flag=LeaseType=="FEE"|LeaseType=="STATE",
          depth1000_flag=depth<1000,
          depth3000_flag=depth>=1000&depth<3000,
@@ -266,3 +267,4 @@ print(paste("Inactive wells held by these firms could cost ", sum(small_risky_op
 print(paste("Inactive wells held by these firms could cost ", sum(small_risky_operators$liability2), "dollars to plug"))
 print(paste("Inactive wells held by these firms could cost ", sum(small_risky_operators$liability3), "dollars to plug"))
 print(paste("Inactive wells held by these firms could cost ", sum(small_risky_operators$liability4), "dollars to plug"))
+
