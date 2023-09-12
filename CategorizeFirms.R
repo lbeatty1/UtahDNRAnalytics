@@ -391,4 +391,4 @@ print(paste("Inactive wells held by these firms could cost ", sum(small_risky_op
 print(paste("Inactive wells held by these firms could cost ", sum(small_risky_operators$liability3), "dollars to plug"))
 print(paste("Inactive wells held by these firms could cost ", sum(small_risky_operators$liability4), "dollars to plug"))
 
-write.csv(operator_dat%>%select(Operator, avg_depth, tot_BOE, tot_wells, tot_inactive, tier, old_bond, bond, liability1, liability2, liability1_marginal, liability2_marginal, "UtahDNRAnalytics/Operator_dat.csv"))
+write.csv(operator_dat%>%select(Operator, avg_depth, tot_BOE, tot_wells, tot_inactive, tier, old_bond, bond, liability1, liability2, liability1_marginal, liability2_marginal), "UtahDNRAnalytics/Operator_dat.csv")
