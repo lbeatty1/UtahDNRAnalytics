@@ -78,6 +78,24 @@ rm(wellhistory, welldepth)
 ## Aggregate production####
 ################################
 
+#collapse prod data to API10 level 
+prod_data=prod_data%>%
+  mutate(producing_flag = WellStatus%in%c("P", "PAI", "PII"))%>%
+  group_by(API, Operator, ReportPeriod)%>%
+  summarise(Oil=sum(Oil),
+            Gas=sum(Gas),
+            Water=sum(Water),
+            producing_flag=max(producing_flag))
+
+#save length shut-in -- wells shut-in longer than 12 don't qualify for blankets
+#this line creates a running counter for time shutin and time producing in months
+prod_data = prod_data%>%
+  mutate(shutin_flag=1-producing_flag)%>%
+  group_by(API)%>%
+  arrange(ReportPeriod)%>%
+  mutate(time_shutin=seq_along(shutin_flag),
+         time_producing=time_shutin*(producing_flag),
+         time_shutin=time_shutin*shutin_flag)
 
 #look from 2022-06-01 to 2023-05-01 for data availability
 past_12_prod = prod_data%>%
@@ -88,6 +106,11 @@ past_12_prod = prod_data%>%
             Gas=sum(Gas),
             Water=sum(Water),
             n_reports=n())
+
+status_052023 = prod_data%>%
+  filter(ReportPeriod=="2023-05-01")%>%
+  select(API, time_shutin, time_producing)
+past_12_prod=left_join(past_12_prod, status_052023, by="API")
 
 well_data=left_join(wells, past_12_prod, by=c("API10"="API"))
 
@@ -127,7 +150,8 @@ well_data=well_data%>%
          depth1000_flag=depth<1000,
          depth3000_flag=depth>=1000&depth<3000,
          depth10000_flag=depth>=3000&depth<10000,
-         depthmax_flag=depth>=10000)
+         depthmax_flag=depth>=10000,
+         shutin12_flag = time_shutin>12)
 
 well_data%>%group_by(inactive_marginal_flag)%>%summarise(n=n())
 
@@ -192,6 +216,8 @@ operator_dat = operator_dat%>%
          depthmax_bond = depthmax_wells*60000,
          depth1000_flag = depth1000_wells>0,
          depthgreater1000_flag = tot_wells-depth1000_wells>0)
+
+#update new numbers
 
 operator_dat = operator_dat%>%
   mutate(old_blanket1000 = 15000*depth1000_flag,
@@ -375,12 +401,24 @@ ggsave(filename="UtahDNRAnalytics/Figures/InactiveMarginalLiabilities2.jpg",
        height=5,
        width=7)
 
+#only for small firms
+ggplot(data=operator_dat%>%filter(bond<1000000, tier==4))+
+  geom_point(aes(x=bond, y=liability2))+
+  geom_abline(slope=1, intercept=0)+
+  ggtitle("New bonds don't cover marginal and inactive well plugging liability \n if plugging costs are high")+
+  scale_y_continuous(labels = dollar)+
+  ylab("Total Plugging Liabilities for Marginal/Inactive Wells")+
+  scale_x_continuous(label=dollar)+
+  xlab("Required Bonds")+
+  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs 75000 to plug.")+
+  theme_bw()
+
 
 ############################################################################
 ## How many wells operated by small firms where liabilities exceed bonds? ##
 ############################################################################
 small_risky_operators = operator_dat%>%
-  filter(tot_BOE<5000000,
+  filter(tier==4,
          bondliability1<0)
 
 print(paste("Small operators where plugging liabilities exceed bonds hold ", sum(small_risky_operators$tot_wells), "wells and", sum(small_risky_operators$tot_wells)/sum(operator_dat$tot_wells), "percent of the state's total wells"))
