@@ -1,9 +1,15 @@
+###########################################
+## Code to analyze new Utah bonding rule ##
+## Written by Lauren Beatty, EDF ##########
+###########################################
+
 rm(list=ls())
 
 library(tidyverse)
 library(lubridate)
 library(ggplot2)
 library(scales)
+library(data.table)
 
 ###################################
 ## Code to analyze Utah DNR data ##
@@ -85,16 +91,17 @@ prod_data=prod_data%>%
   summarise(Oil=sum(Oil),
             Gas=sum(Gas),
             Water=sum(Water),
-            producing_flag=max(producing_flag))
+            producing_flag=max(producing_flag),
+            shutin_flag=1-producing_flag)
 
 #save length shut-in -- wells shut-in longer than 12 don't qualify for blankets
 #this line creates a running counter for time shutin and time producing in months
+#no tidyverse solution - must switch to data.table
+prod_data = data.table(prod_data)
+prod_data[order(ReportPeriod),time_shutin:=rowid(rleid(shutin_flag)),by=API]
+
 prod_data = prod_data%>%
-  mutate(shutin_flag=1-producing_flag)%>%
-  group_by(API)%>%
-  arrange(ReportPeriod)%>%
-  mutate(time_shutin=seq_along(shutin_flag),
-         time_producing=time_shutin*(producing_flag),
+  mutate(time_producing=time_shutin*(producing_flag),
          time_shutin=time_shutin*shutin_flag)
 
 #look from 2022-06-01 to 2023-05-01 for data availability
@@ -109,8 +116,24 @@ past_12_prod = prod_data%>%
 
 status_052023 = prod_data%>%
   filter(ReportPeriod=="2023-05-01")%>%
-  select(API, time_shutin, time_producing)
+  select(API, time_shutin, time_producing)  #save length of inactivity at 052023
+
+status_max = prod_data%>%
+  group_by(API)%>%
+  arrange(ReportPeriod)%>%
+  mutate(rownumber=row_number())%>%
+  slice_max(n=1, order_by=rownumber)%>%
+  select(API, time_shutin, time_producing)%>%
+  rename(time_shutin_imputed = time_shutin,
+         time_producing_imputed = time_producing)
+
 past_12_prod=left_join(past_12_prod, status_052023, by="API")
+past_12_prod = left_join(past_12_prod, status_max, by="API")
+
+#replace missing with imputed values
+past_12_prod = past_12_prod%>%
+  mutate(time_shutin=coalesce(time_shutin, time_shutin_imputed),
+         time_producing = coalesce(time_producing, time_producing_imputed))
 
 well_data=left_join(wells, past_12_prod, by=c("API10"="API"))
 
@@ -147,37 +170,51 @@ well_data=well_data%>%
          inactive_flag = wellstatus%in%c("S", "TA", "I"),
          inactive_marginal_flag=pmax(marginal_flag, inactive_flag),
          fee_state_flag=LeaseType=="FEE"|LeaseType=="STATE",
-         depth1000_flag=depth<1000,
-         depth3000_flag=depth>=1000&depth<3000,
-         depth10000_flag=depth>=3000&depth<10000,
-         depthmax_flag=depth>=10000,
-         shutin12_flag = time_shutin>12)
+         shutin12_flag = time_shutin>12,                    #saves whether a well needs to be individually bonded
+         depth_1000_flag=depth<=1000,
+         depth_1000_3000_flag=depth>1000&depth<=3000,
+         depth_3000_6000_flag = depth>3000&depth<=6000,     #these are the new depth thresholds
+         depth_6000_9000_flag = depth>6000&depth<=9000,
+         depth_9000_12000_flag = depth>9000&depth<=12000,
+         depth_12000_flag = depth>12000,
+         shutin12_flag = replace(shutin12_flag, is.na(shutin12_flag), 0)) #bunch of missing shutin12 flags -- looks like these are mostly injection wells but I'll fill all the missings in with 0 to be conservative
 
 well_data%>%group_by(inactive_marginal_flag)%>%summarise(n=n())
 
 # group by operator, get well counts
 operator_dat = well_data%>%
-  group_by(Operator)%>%
+  group_by(Operator, shutin12_flag)%>%
   summarise(avg_depth=mean(depth, na.rm=T),
             tot_BOE=sum(BOEtot),
             tot_wells=n(),
-            depth1000_wells = sum(depth1000_flag,na.rm=T),
-            depth3000_wells = sum(depth3000_flag,na.rm=T),
-            depth10000_wells = sum(depth10000_flag,na.rm=T),
-            depthmax_wells = sum(depthmax_flag,na.rm=T))
+            depth_1000_wells = sum(depth_1000_flag,na.rm=T),
+            depth_1000_3000_wells = sum(depth_1000_3000_flag,na.rm=T),
+            depth_3000_6000_wells = sum(depth_3000_6000_flag,na.rm=T),
+            depth_6000_9000_wells = sum(depth_6000_9000_flag, na.rm=T),
+            depth_9000_12000_wells = sum(depth_9000_12000_flag,na.rm=T),
+            depth_12000_wells = sum(depth_12000_flag,na.rm=T))
 
 inactive_operator_dat=well_data%>%
   group_by(Operator, inactive_marginal_flag)%>%
   summarise(tot_inactive=n())%>%
+  group_by(Operator)%>%
+  mutate(tot_wells = sum(tot_inactive),
+         pct_inactive=tot_inactive/tot_wells)%>%
   filter(inactive_marginal_flag==1)%>%
-  select(Operator, tot_inactive)
+  select(Operator, tot_inactive, pct_inactive)
 
 
 #calculate operator tier
 operator_dat=left_join(operator_dat, inactive_operator_dat, by="Operator")
+
+
+operator_dat_shutin12 = operator_dat%>%
+  filter(shutin12_flag==1)
+
 operator_dat = operator_dat%>%
+  filter(shutin12_flag==0)%>%
   mutate(tot_inactive = replace(tot_inactive, is.na(tot_inactive), 0),
-         pct_inactive = tot_inactive/tot_wells,
+         pct_inactive = replace(pct_inactive, is.na(pct_inactive), 0),
          BOEperday=tot_BOE/365,
          tier1 = BOEperday>=1000&pct_inactive<=0.15,
          tier2 = BOEperday>=500&pct_inactive<=0.2,
@@ -208,25 +245,33 @@ operator_dat = operator_dat%>%
          tier3marginal = sapply(avg_depth,tier3_marginalbond)*tot_inactive_feestate)
 
 
-## Calculate old bonds
+## Calculate per-well bonds
 operator_dat = operator_dat%>%
-  mutate(depth1000_bond = depth1000_wells*1500,
-         depth3000_bond = depth3000_wells*15000,
-         depth10000_bond = depth10000_wells*30000,
-         depthmax_bond = depthmax_wells*60000,
-         depth1000_flag = depth1000_wells>0,
-         depthgreater1000_flag = tot_wells-depth1000_wells>0)
+  mutate(depth_1000_bond = depth_1000_wells*10000,
+         depth_1000_3000_bond = depth_1000_3000_wells*20000,
+         depth_3000_6000_bond = depth_3000_6000_wells*40000,
+         depth_6000_9000_bond = depth_6000_9000_wells*65000,
+         depth_9000_12000_bond = depth_9000_12000_wells*85000,
+         depth_12000_bond = depth_12000_wells*110000)
 
-#update new numbers
+operator_dat_shutin12 = operator_dat_shutin12%>%
+  mutate(depth_1000_bond = depth_1000_wells*10000,
+         depth_1000_3000_bond = depth_1000_3000_wells*20000,
+         depth_3000_6000_bond = depth_3000_6000_wells*40000,
+         depth_6000_9000_bond = depth_6000_9000_wells*65000,
+         depth_9000_12000_bond = depth_9000_12000_wells*85000,
+         depth_12000_bond = depth_12000_wells*110000)
 
+#take sum of operator long shutin wells
+operator_dat_shutin12 = operator_dat_shutin12%>%
+  mutate(shutin_well_bond = depth_1000_bond+depth_1000_3000_bond+depth_3000_6000_bond+depth_6000_9000_bond+depth_9000_12000_bond+depth_12000_bond)%>%
+  select(Operator, shutin_well_bond)
+
+
+operator_dat=left_join(operator_dat, operator_dat_shutin12, by="Operator")
 operator_dat = operator_dat%>%
-  mutate(old_blanket1000 = 15000*depth1000_flag,
-         old_blanketgreater1000 = 120000*depthgreater1000_flag,
-         old_bond = pmin(old_blanket1000, depth1000_bond)+ pmin(old_blanketgreater1000, depth3000_bond+depth10000_bond+depthmax_bond))
-
-operator_dat = operator_dat%>%
-  mutate(bond = (tier1blanket+tier1marginal)*(tier==1)+(tier2blanket+tier2marginal)*(tier==2)+(tier3blanket+tier3marginal)*(tier==3)+(depth1000_bond+depth3000_bond+depth10000_bond+depthmax_bond)*(tier==4),
-         bond_delta = bond-old_bond)
+  mutate(shutin_well_bond=replace(shutin_well_bond, is.na(shutin_well_bond), 0),
+         bond = (tier1blanket+tier1marginal)*(tier==1)+(tier2blanket+tier2marginal)*(tier==2)+(tier3blanket+tier3marginal)*(tier==3)+(depth_1000_bond+depth_1000_3000_bond+depth_3000_6000_bond+depth_6000_9000_bond+depth_9000_12000_bond+depth_12000_bond)*(tier==4)+shutin_well_bond)
 
 
 
@@ -253,16 +298,20 @@ operator_liabilities = well_data%>%
 
 operator_dat = left_join(operator_dat, operator_liabilities, by="Operator")
 operator_dat=operator_dat%>%
+  arrange(desc(tier))%>%
   mutate(bondliability1 = bond-liability1,
          bondliability2 = bond-liability2,
          bondliability3 = bond-liability3,
-         bondliability4 = bond-liability4)
+         bondliability4 = bond-liability4,
+         tier=factor(tier, levels=c("1", "2", "3", "4")))
 
+#PLOT LIABILITIES AGAINST BONDS
 
-ggplot(data=operator_dat%>%filter(bond<1000000))+
-  geom_point(aes(x=bond, y=liability1))+
+##ASSUMPTION 1
+ggplot(data=operator_dat%>%filter(bond<25000000))+
+  geom_point(aes(x=bond, y=liability1, colour=tier))+
   geom_abline(slope=1, intercept=0)+
-  ggtitle("Liabilities exceed bond amounts for most firms")+
+  ggtitle("Liabilities exceed bond amounts for large firms")+
   scale_y_continuous(labels = dollar)+
   ylab("Total Plugging Liabilities")+
   scale_x_continuous(label=dollar)+
@@ -275,10 +324,27 @@ ggsave(filename="UtahDNRAnalytics/Figures/BondsLiabilities1.jpg",
        height=5,
        width=7)
 
-ggplot(data=operator_dat%>%filter(bond<1000000))+
-  geom_point(aes(x=bond, y=liability2))+
+ggplot(data=operator_dat%>%filter(bond<5000000))+
+  geom_point(aes(x=bond, y=liability1, colour=tier))+
   geom_abline(slope=1, intercept=0)+
-  ggtitle("Liabilities exceed bond amounts for most firms")+
+  ggtitle("Policy does a great job of covering smaller firms if \n if plug costs are low.")+
+  scale_y_continuous(labels = dollar)+
+  ylab("Total Plugging Liabilities")+
+  scale_x_continuous(label=dollar)+
+  xlab("Required Bonds")+
+  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs 37500 to plug.")+
+  theme_bw()
+
+ggsave(filename="UtahDNRAnalytics/Figures/BondsLiabilities1_zoomed.jpg",
+       device="jpg",
+       height=5,
+       width=7)
+
+## ASSUMPTION 2
+ggplot(data=operator_dat%>%filter(bond<25000000))+
+  geom_point(aes(x=bond, y=liability2, colour=tier))+
+  geom_abline(slope=1, intercept=0)+
+  ggtitle("Liabilities exceed bond amounts for large firms")+
   scale_y_continuous(labels = dollar)+
   ylab("Total Plugging Liabilities")+
   scale_x_continuous(label=dollar)+
@@ -291,64 +357,87 @@ ggsave(filename="UtahDNRAnalytics/Figures/BondsLiabilities2.jpg",
        height=5,
        width=7)
 
-ggplot(data=operator_dat%>%filter(bond_delta<10000000))+
-  geom_point(aes(x=tot_BOE, y=bond_delta))+
-  ggtitle("Bonds increase the most for high-production firms")+
+ggplot(data=operator_dat%>%filter(bond<5000000))+
+  geom_point(aes(x=bond, y=liability2, colour=tier))+
+  geom_abline(slope=1, intercept=0)+
+  ggtitle("If plugging costs are high then the policy still looks fairly good.")+
   scale_y_continuous(labels = dollar)+
-  ylab("Difference Between New and Old Bond Amounts")+
-  xlab("Total Yearly Production (BOE)")+
+  ylab("Total Plugging Liabilities")+
+  scale_x_continuous(label=dollar)+
+  xlab("Required Bonds")+
+  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs 75000 to plug.")+
   theme_bw()
-#bond deltas are weakly positive, bonds mostly increase for large firms
 
-ggsave(filename="UtahDNRAnalytics/Figures/BondDeltaProduction.jpg",
+ggsave(filename="UtahDNRAnalytics/Figures/BondsLiabilities2_zoomed.jpg",
        device="jpg",
        height=5,
        width=7)
 
-ggplot(data=operator_dat)+
-  geom_point(aes(x=tot_BOE, y=bondliability1))+
-  ggtitle("Liabilities exceed bond amounts large firms")+
+#ASSUMPTION 3
+ggplot(data=operator_dat%>%filter(bond<25000000))+
+  geom_point(aes(x=bond, y=liability3, colour=tier))+
+  geom_abline(slope=1, intercept=0)+
+  ggtitle("Liabilities exceed bond amounts for large firms")+
   scale_y_continuous(labels = dollar)+
-  ylab("Difference between bonds and plugging liabilities")+
-  labs(caption="Calculated assuming each well costs 37500 to plug.")+
-  xlab("Total BOE")+
+  ylab("Total Plugging Liabilities")+
+  scale_x_continuous(label=dollar)+
+  xlab("Required Bonds")+
+  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs $6 per foot to plug.")+
   theme_bw()
-#difference between bonds and liabilities is decreasing in total production
 
-ggsave(filename="UtahDNRAnalytics/Figures/NetLiability1Production.jpg",
+ggsave(filename="UtahDNRAnalytics/Figures/BondsLiabilities3.jpg",
        device="jpg",
        height=5,
        width=7)
 
-ggplot(data=operator_dat%>%filter(tot_BOE<200000000))+
-  geom_point(aes(x=tot_BOE, y=bondliability1))+
-  ggtitle("Liabilities exceed bond amounts large firms (zoomed in)")+
+ggplot(data=operator_dat%>%filter(bond<5000000))+
+  geom_point(aes(x=bond, y=liability3, colour=tier))+
+  geom_abline(slope=1, intercept=0)+
+  ggtitle("Policy does a great job of covering smaller firms if \n if plug costs are low.")+
   scale_y_continuous(labels = dollar)+
-  ylab("Difference between bonds and plugging liabilities")+
-  xlab("Total BOE")+
-  labs(caption="Calculated assuming each well costs 37500 to plug.")+
+  ylab("Total Plugging Liabilities")+
+  scale_x_continuous(label=dollar)+
+  xlab("Required Bonds")+
+  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs $6 per foot to plug.")+
   theme_bw()
-#difference between bonds and liabilities is decreasing in total production
 
-ggsave(filename="UtahDNRAnalytics/Figures/NetLiability1Production_zoomed.jpg",
+ggsave(filename="UtahDNRAnalytics/Figures/BondsLiabilities3_zoomed.jpg",
        device="jpg",
        height=5,
        width=7)
 
-ggplot(data=operator_dat%>%filter(tot_BOE<10000000))+
-  geom_point(aes(x=tot_BOE, y=bondliability1))+
-  ggtitle("Liabilities exceed bond amounts large firms (more zoomed in)")+
+#ASSUMPTION 4
+ggplot(data=operator_dat%>%filter(bond<25000000))+
+  geom_point(aes(x=bond, y=liability4, colour=tier))+
+  geom_abline(slope=1, intercept=0)+
+  ggtitle("Liabilities exceed bond amounts for large firms")+
   scale_y_continuous(labels = dollar)+
-  ylab("Difference between bonds and plugging liabilities")+
-  xlab("Total BOE")+
-  labs(caption="Calculated assuming each well costs 37500 to plug.  For very small firms, many still have liabilities that exceed bonds.")+
+  ylab("Total Plugging Liabilities")+
+  scale_x_continuous(label=dollar)+
+  xlab("Required Bonds")+
+  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs $12 per foot to plug.")+
   theme_bw()
-#difference between bonds and liabilities is decreasing in total production
-ggsave(filename="UtahDNRAnalytics/Figures/NetLiability1Production_smallfirms.jpg",
+
+ggsave(filename="UtahDNRAnalytics/Figures/BondsLiabilities4.jpg",
        device="jpg",
        height=5,
        width=7)
 
+ggplot(data=operator_dat%>%filter(bond<5000000))+
+  geom_point(aes(x=bond, y=liability4, colour=tier))+
+  geom_abline(slope=1, intercept=0)+
+  ggtitle("If plugging costs are high then the policy still looks fairly good.")+
+  scale_y_continuous(labels = dollar)+
+  ylab("Total Plugging Liabilities")+
+  scale_x_continuous(label=dollar)+
+  xlab("Required Bonds")+
+  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs $12 per foot to plug.")+
+  theme_bw()
+
+ggsave(filename="UtahDNRAnalytics/Figures/BondsLiabilities3_zoomed.jpg",
+       device="jpg",
+       height=5,
+       width=7)
 
 #####################
 ## What if we just consider marginal and inactive wells?
@@ -370,8 +459,8 @@ operator_dat=operator_dat%>%
 
 
 
-ggplot(data=operator_dat%>%filter(bond<1000000))+
-  geom_point(aes(x=bond, y=liability1_marginal))+
+ggplot(data=operator_dat%>%filter(bond<10000000))+
+  geom_point(aes(x=bond, y=liability1_marginal, color=tier))+
   geom_abline(slope=1, intercept=0)+
   ggtitle("New bonds cover marginal and inactive well plugging liability")+
   scale_y_continuous(labels = dollar)+
@@ -386,8 +475,8 @@ ggsave(filename="UtahDNRAnalytics/Figures/InactiveMarginalLiabilities1.jpg",
        height=5,
        width=7)
 
-ggplot(data=operator_dat%>%filter(bond<1000000))+
-  geom_point(aes(x=bond, y=liability2))+
+ggplot(data=operator_dat%>%filter(bond<10000000))+
+  geom_point(aes(x=bond, y=liability2, colour=tier))+
   geom_abline(slope=1, intercept=0)+
   ggtitle("New bonds don't cover marginal and inactive well plugging liability \n if plugging costs are high")+
   scale_y_continuous(labels = dollar)+
@@ -402,31 +491,60 @@ ggsave(filename="UtahDNRAnalytics/Figures/InactiveMarginalLiabilities2.jpg",
        width=7)
 
 #only for small firms
-ggplot(data=operator_dat%>%filter(bond<1000000, tier==4))+
+ggplot(data=operator_dat%>%filter(tier==4, tot_BOE<1000000))+
   geom_point(aes(x=bond, y=liability2))+
   geom_abline(slope=1, intercept=0)+
-  ggtitle("New bonds don't cover marginal and inactive well plugging liability \n if plugging costs are high")+
+  ggtitle("Tier 4 Firms Which Produce Less than 1,000,000 BOE/yr \n Plugging liabilities exceed bond amounts if plugging costs are high.")+
   scale_y_continuous(labels = dollar)+
   ylab("Total Plugging Liabilities for Marginal/Inactive Wells")+
   scale_x_continuous(label=dollar)+
   xlab("Required Bonds")+
-  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs 75000 to plug.")+
+  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs 75,000 to plug.")+
   theme_bw()
+
+ggsave(filename="UtahDNRAnalytics/Figures/InactiveMarginalLiabilities2_Tier4SmallFirms.jpg",
+       device="jpg",
+       height=5,
+       width=7)
+
+ggplot(data=operator_dat%>%filter(tier==4, tot_BOE<1000000))+
+  geom_point(aes(x=bond, y=liability1))+
+  geom_abline(slope=1, intercept=0)+
+  ggtitle("Tier 4 Firms Which Produce Less than 1,000,000 BOE/yr \n Plugging liabilities are less than bond amounts if plugging costs are low")+
+  scale_y_continuous(labels = dollar)+
+  ylab("Total Plugging Liabilities for Marginal/Inactive Wells")+
+  scale_x_continuous(label=dollar)+
+  xlab("Required Bonds")+
+  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs 37,500 to plug.")+
+  theme_bw()
+
+ggsave(filename="UtahDNRAnalytics/Figures/InactiveMarginalLiabilities1_Tier4SmallFirms.jpg",
+       device="jpg",
+       height=5,
+       width=7)
 
 
 ############################################################################
 ## How many wells operated by small firms where liabilities exceed bonds? ##
 ############################################################################
 small_risky_operators = operator_dat%>%
-  filter(tier==4,
-         bondliability1<0)
+  filter(tot_BOE<1000000)
 
-print(paste("Small operators where plugging liabilities exceed bonds hold ", sum(small_risky_operators$tot_wells), "wells and", sum(small_risky_operators$tot_wells)/sum(operator_dat$tot_wells), "percent of the state's total wells"))
-print(paste("Small operators where plugging liabilities exceed bonds hold ", sum(small_risky_operators$tot_inactive), "inactive wells and", sum(small_risky_operators$tot_inactive)/sum(operator_dat$tot_inactive), "percent of the state's inactive wells"))
+print(paste("Small operators hold ", sum(small_risky_operators$tot_wells), "wells and", sum(small_risky_operators$tot_wells)/sum(operator_dat$tot_wells), "percent of the state's total wells"))
+print(paste("Small operators hold", sum(small_risky_operators$tot_inactive,na.rm=T), "inactive wells and", sum(small_risky_operators$tot_inactive,na.rm=T)/sum(operator_dat$tot_inactive, na.rm=T), "percent of the state's inactive wells"))
 
 print(paste("Inactive wells held by these firms could cost ", sum(small_risky_operators$liability1), "dollars to plug"))
 print(paste("Inactive wells held by these firms could cost ", sum(small_risky_operators$liability2), "dollars to plug"))
 print(paste("Inactive wells held by these firms could cost ", sum(small_risky_operators$liability3), "dollars to plug"))
 print(paste("Inactive wells held by these firms could cost ", sum(small_risky_operators$liability4), "dollars to plug"))
 
-write.csv(operator_dat%>%select(Operator, avg_depth, tot_BOE, tot_wells, tot_inactive, tier, old_bond, bond, liability1, liability2, liability1_marginal, liability2_marginal), "UtahDNRAnalytics/Operator_dat.csv")
+small_risky1 = small_risky_operators%>%
+  filter(bondliability1_marginal<0)
+print(paste("There are ", nrow(small_risky1), "firms which produce less than 1000000 BOE/yr whose plugging liabilities for marginal/inactive wells exceed bond amounts if plug costs are low (37500 per well)."))
+
+
+small_risky2 = small_risky_operators%>%
+  filter(bondliability2_marginal<0)
+print(paste("There are ", nrow(small_risky2), "firms which produce less than 1000000 BOE/yr whose plugging liabilities for marginal/inactive wells exceed bond amounts if plug costs are high (75000 per well)."))
+print(paste("For these firms marginal/inactive plugging liabilities exceed collected bonds by", -1*sum(small_risky2$bondliability2_marginal), "if plugging costs are high (75000)"))
+write.csv(operator_dat%>%select(Operator, avg_depth, tot_BOE, tot_wells, tot_inactive, tier, bond, liability1, liability2, liability1_marginal, liability2_marginal), "UtahDNRAnalytics/Operator_dat.csv")
