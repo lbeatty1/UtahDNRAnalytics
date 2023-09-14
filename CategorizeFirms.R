@@ -463,7 +463,7 @@ ggplot(data=operator_dat%>%filter(bond<5000000))+
   labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs $12 per foot to plug.")+
   theme_bw()
 
-ggsave(filename="UtahDNRAnalytics/Figures/BondsLiabilities3_zoomed.jpg",
+ggsave(filename="UtahDNRAnalytics/Figures/BondsLiabilities4_zoomed.jpg",
        device="jpg",
        height=5,
        width=7)
@@ -507,7 +507,7 @@ ggsave(filename="UtahDNRAnalytics/Figures/InactiveMarginalLiabilities1.jpg",
 
 ## Assumption 2
 ggplot(data=operator_dat%>%filter(bond<10000000))+
-  geom_point(aes(x=bond, y=liability2, colour=tier))+
+  geom_point(aes(x=bond, y=liability2_marginal, colour=tier))+
   geom_abline(slope=1, intercept=0)+
   ggtitle("New bonds don't cover marginal and inactive well plugging liability \n if plugging costs are high")+
   scale_y_continuous(labels = dollar)+
@@ -540,9 +540,9 @@ ggsave(filename="UtahDNRAnalytics/Figures/InactiveMarginalLiabilities3.jpg",
 
 ## Assumption 4
 ggplot(data=operator_dat%>%filter(bond<10000000))+
-  geom_point(aes(x=bond, y=liability4, colour=tier))+
+  geom_point(aes(x=bond, y=liability4_marginal, colour=tier))+
   geom_abline(slope=1, intercept=0)+
-  ggtitle("If plugging costs are high, then firms which don't meet tier \n requirements look covered.")+
+  ggtitle("If plugging costs are high, then firms which don't meet tier \n requirements (tier 4) look covered.")+
   scale_y_continuous(labels = dollar)+
   ylab("Total Plugging Liabilities for Marginal/Inactive Wells")+
   scale_x_continuous(label=dollar)+
@@ -556,7 +556,7 @@ ggsave(filename="UtahDNRAnalytics/Figures/InactiveMarginalLiabilities4.jpg",
 
 #only for small/Tier4 firms
 ggplot(data=operator_dat%>%filter(tier==4, tot_BOE<1000000))+
-  geom_point(aes(x=bond, y=liability2))+
+  geom_point(aes(x=bond, y=liability2_marginal))+
   geom_abline(slope=1, intercept=0)+
   ggtitle("Tier 4 Firms Which Produce Less than 1,000,000 BOE/yr \n Plugging liabilities exceed bond amounts if plugging costs are high.")+
   scale_y_continuous(labels = dollar)+
@@ -572,7 +572,7 @@ ggsave(filename="UtahDNRAnalytics/Figures/InactiveMarginalLiabilities2_Tier4Smal
        width=7)
 
 ggplot(data=operator_dat%>%filter(tier==4, tot_BOE<1000000))+
-  geom_point(aes(x=bond, y=liability1))+
+  geom_point(aes(x=bond, y=liability1_marginal))+
   geom_abline(slope=1, intercept=0)+
   ggtitle("Tier 4 Firms Which Produce Less than 1,000,000 BOE/yr \n Plugging liabilities are less than bond amounts if plugging costs are low")+
   scale_y_continuous(labels = dollar)+
@@ -586,6 +586,26 @@ ggsave(filename="UtahDNRAnalytics/Figures/InactiveMarginalLiabilities1_Tier4Smal
        device="jpg",
        height=5,
        width=7)
+
+
+###
+# Plot percentage of liabilities covered by bonds by tier
+operator_dat = operator_dat%>%
+  mutate(liability1_marginal_pct = bond/liability1_marginal,
+         liability2_marginal_pct = bond/liability2_marginal)
+
+ggplot(data=operator_dat)+
+  geom_density(aes(x=liability2_marginal_pct, fill=tier), alpha=0.3, bw=0.15)+
+  ggtitle("Density of the proportion of covered liabilities by firm tier")+
+  xlab("Proportion of covered liabilities from marginal/inactive wells")+
+  labs(cation="Liabilities are calculated assuming each well costs 75000 to plug.")+
+  theme_bw()
+
+ggsave(filename="UtahDNRAnalytics/Figures/LiabilityProportionDensity.jpg",
+       device="jpg",
+       height=5,
+       width=7)
+
 
 
 ############################################################################
