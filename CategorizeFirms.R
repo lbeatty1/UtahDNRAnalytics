@@ -11,9 +11,17 @@ library(ggplot2)
 library(scales)
 library(data.table)
 
-###################################
-## Code to analyze Utah DNR data ##
-###################################
+######################################
+## GENERAL OUTLINE OF PROCEDURE ######
+# 1. Clean, format data
+# 2. Take production data and look a the year from 06/2022 through 05/2023
+# 3. Create lots of flags for wells - inactive, inactive for >12 months, on fee/state land, depth flags
+# 4.By operator, sum over wells to figure out how many wells of each type they own, calculate which tier operators fall in
+# 5. Calculate bonds for each operator based on their imputed tier
+# 6. Calculate plugging liabilities using a couple different assumptions
+# 7. Make plots
+# 8. Calculate some final stats on small operators
+# 9. Write operator data to csv
 
 setwd("C:/Users/lbeatty/Documents/")
 
@@ -203,13 +211,23 @@ inactive_operator_dat=well_data%>%
   filter(inactive_marginal_flag==1)%>%
   select(Operator, tot_inactive, pct_inactive)
 
-
-#calculate operator tier
+############################
+#### CALCULATE OPERATOR TIER
+############################
 operator_dat=left_join(operator_dat, inactive_operator_dat, by="Operator")
 
 
 operator_dat_shutin12 = operator_dat%>%
   filter(shutin12_flag==1)
+
+#want to save true tot_wells for later
+#note that tot_wells in operator_dat will only count active and inactive for less than 12 months wells for a while
+#Since wells inactive for more than 12 months are not being covered by the blanket bond, its reasonable to assume they are not used in the 
+#calculation of blanket bond amounts?
+operator_n_wells = operator_dat%>%
+  group_by(Operator)%>%
+  summarise(tot_wells = sum(tot_wells))
+
 
 operator_dat = operator_dat%>%
   filter(shutin12_flag==0)%>%
@@ -221,7 +239,14 @@ operator_dat = operator_dat%>%
          tier3 = BOEperday>=200&pct_inactive<=0.25,
          tier=4-tier1-tier2-tier3)
 
+
+######################
+## CALCULATE BONDS ##
+######################
+
 #calculate number of fee/state inactive wells by operator
+#inactive well bonds are calculated only based on the fee/state status
+#sorry for any confusion here, this is re-writing the data saved as 'inactive_operator_dat' from a few lines ago which was unneeded
 inactive_operator_dat=well_data%>%
   group_by(Operator, inactive_marginal_flag, fee_state_flag)%>%
   summarise(tot_inactive_feestate=n())%>%
@@ -231,6 +256,8 @@ inactive_operator_dat=well_data%>%
   select(Operator, tot_inactive_feestate)
 
 operator_dat=left_join(operator_dat, inactive_operator_dat, by="Operator")
+
+#some operators don't have feestate inactive wells
 operator_dat = operator_dat%>%
   mutate(tot_inactive_feestate=replace(tot_inactive_feestate, is.na(tot_inactive_feestate),0))
 
@@ -246,6 +273,7 @@ operator_dat = operator_dat%>%
 
 
 ## Calculate per-well bonds
+#per-well bond numbers come from April DOGM draft
 operator_dat = operator_dat%>%
   mutate(depth_1000_bond = depth_1000_wells*10000,
          depth_1000_3000_bond = depth_1000_3000_wells*20000,
@@ -267,7 +295,8 @@ operator_dat_shutin12 = operator_dat_shutin12%>%
   mutate(shutin_well_bond = depth_1000_bond+depth_1000_3000_bond+depth_3000_6000_bond+depth_6000_9000_bond+depth_9000_12000_bond+depth_12000_bond)%>%
   select(Operator, shutin_well_bond)
 
-
+#operator total bond will be sum of blanket bond, marginal/inactive fee/state bond, and individual well bonds for shutin wells shutin for more than 12 months
+#for operators not meeting tiers, its simply the sum of individual well bonds
 operator_dat=left_join(operator_dat, operator_dat_shutin12, by="Operator")
 operator_dat = operator_dat%>%
   mutate(shutin_well_bond=replace(shutin_well_bond, is.na(shutin_well_bond), 0),
@@ -459,6 +488,7 @@ operator_dat=operator_dat%>%
 
 
 
+## Assumption 1
 ggplot(data=operator_dat%>%filter(bond<10000000))+
   geom_point(aes(x=bond, y=liability1_marginal, color=tier))+
   geom_abline(slope=1, intercept=0)+
@@ -475,6 +505,7 @@ ggsave(filename="UtahDNRAnalytics/Figures/InactiveMarginalLiabilities1.jpg",
        height=5,
        width=7)
 
+## Assumption 2
 ggplot(data=operator_dat%>%filter(bond<10000000))+
   geom_point(aes(x=bond, y=liability2, colour=tier))+
   geom_abline(slope=1, intercept=0)+
@@ -490,7 +521,40 @@ ggsave(filename="UtahDNRAnalytics/Figures/InactiveMarginalLiabilities2.jpg",
        height=5,
        width=7)
 
-#only for small firms
+## Assumption 3
+ggplot(data=operator_dat%>%filter(bond<10000000))+
+  geom_point(aes(x=bond, y=liability3_marginal, color=tier))+
+  geom_abline(slope=1, intercept=0)+
+  ggtitle("New bonds cover marginal and inactive well plugging liability")+
+  scale_y_continuous(labels = dollar)+
+  ylab("Total Plugging Liabilities for Marginal/Inactive Wells")+
+  scale_x_continuous(label=dollar)+
+  xlab("Required Bonds")+
+  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs $6/foot to plug.")+
+  theme_bw()
+
+ggsave(filename="UtahDNRAnalytics/Figures/InactiveMarginalLiabilities3.jpg",
+       device="jpg",
+       height=5,
+       width=7)
+
+## Assumption 4
+ggplot(data=operator_dat%>%filter(bond<10000000))+
+  geom_point(aes(x=bond, y=liability4, colour=tier))+
+  geom_abline(slope=1, intercept=0)+
+  ggtitle("If plugging costs are high, then firms which don't meet tier \n requirements look covered.")+
+  scale_y_continuous(labels = dollar)+
+  ylab("Total Plugging Liabilities for Marginal/Inactive Wells")+
+  scale_x_continuous(label=dollar)+
+  xlab("Required Bonds")+
+  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs $12/foot to plug.")+
+  theme_bw()
+ggsave(filename="UtahDNRAnalytics/Figures/InactiveMarginalLiabilities4.jpg",
+       device="jpg",
+       height=5,
+       width=7)
+
+#only for small/Tier4 firms
 ggplot(data=operator_dat%>%filter(tier==4, tot_BOE<1000000))+
   geom_point(aes(x=bond, y=liability2))+
   geom_abline(slope=1, intercept=0)+
@@ -527,6 +591,12 @@ ggsave(filename="UtahDNRAnalytics/Figures/InactiveMarginalLiabilities1_Tier4Smal
 ############################################################################
 ## How many wells operated by small firms where liabilities exceed bonds? ##
 ############################################################################
+
+#remember how I said total wells was only counting wells that are active or had been inactive for less than 12 months
+operator_dat=operator_dat%>%
+  select(-c(tot_wells))
+operator_dat=left_join(operator_dat, operator_n_wells, by="Operator")
+
 small_risky_operators = operator_dat%>%
   filter(tot_BOE<1000000)
 
@@ -547,4 +617,4 @@ small_risky2 = small_risky_operators%>%
   filter(bondliability2_marginal<0)
 print(paste("There are ", nrow(small_risky2), "firms which produce less than 1000000 BOE/yr whose plugging liabilities for marginal/inactive wells exceed bond amounts if plug costs are high (75000 per well)."))
 print(paste("For these firms marginal/inactive plugging liabilities exceed collected bonds by", -1*sum(small_risky2$bondliability2_marginal), "if plugging costs are high (75000)"))
-write.csv(operator_dat%>%select(Operator, avg_depth, tot_BOE, tot_wells, tot_inactive, tier, bond, liability1, liability2, liability1_marginal, liability2_marginal), "UtahDNRAnalytics/Operator_dat.csv")
+write.csv(operator_dat%>%select(Operator, avg_depth, tot_BOE, tot_wells, tot_inactive, tot_inactive_feestate, tier, bond, liability1, liability2, liability3, liability4, liability1_marginal, liability2_marginal, liability3_marginal, liability4_marginal), "UtahDNRAnalytics/Operator_dat.csv")
