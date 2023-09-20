@@ -1,6 +1,7 @@
 ###########################################
 ## Code to analyze new Utah bonding rule ##
 ## Written by Lauren Beatty, EDF ##########
+## lbeatty@edf.org ########################
 ###########################################
 
 rm(list=ls())
@@ -175,8 +176,10 @@ well_data=well_data%>%
          BOEperday = BOEtot/(n_reports*30),
          BOEperday = replace(BOEperday, is.na(n_reports), 0),
          marginal_flag=BOEperday<=2,
+         marginal_flag2 = BOEperday<=1,   #what if marginal threshold was 1?
          inactive_flag = wellstatus%in%c("S", "TA", "I"),
          inactive_marginal_flag=pmax(marginal_flag, inactive_flag),
+         inactive_marginal_flag2 = pmax(marginal_flag2, inactive_flag),
          fee_state_flag=LeaseType=="FEE"|LeaseType=="STATE",
          shutin12_flag = time_shutin>12,                    #saves whether a well needs to be individually bonded
          depth_1000_flag=depth<=1000,
@@ -340,7 +343,7 @@ operator_dat=operator_dat%>%
 ggplot(data=operator_dat%>%filter(bond<25000000))+
   geom_point(aes(x=bond, y=liability1, colour=tier))+
   geom_abline(slope=1, intercept=0)+
-  ggtitle("Liabilities exceed bond amounts for large firms")+
+  ggtitle("Liabilities exceed bond amounts for large firms \n but small firms look covered if plug costs are low.")+
   scale_y_continuous(labels = dollar)+
   ylab("Total Plugging Liabilities")+
   scale_x_continuous(label=dollar)+
@@ -401,6 +404,17 @@ ggsave(filename="UtahDNRAnalytics/Figures/BondsLiabilities2_zoomed.jpg",
        device="jpg",
        height=5,
        width=7)
+
+ggplot(data=operator_dat%>%filter(bond<1000000))+
+  geom_point(aes(x=bond, y=liability2, colour=tier))+
+  geom_abline(slope=1, intercept=0)+
+  ggtitle("If plugging costs are high then the policy still looks fairly good.")+
+  scale_y_continuous(labels = dollar)+
+  ylab("Total Plugging Liabilities")+
+  scale_x_continuous(label=dollar)+
+  xlab("Required Bonds")+
+  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs 75000 to plug.")+
+  theme_bw()
 
 #ASSUMPTION 3
 ggplot(data=operator_dat%>%filter(bond<25000000))+
