@@ -357,7 +357,7 @@ operator_dat=operator_dat%>%
 ggplot(data=operator_dat%>%filter(bond<25000000))+
   geom_point(aes(x=bond, y=liability1, colour=tier))+
   geom_abline(slope=1, intercept=0)+
-  ggtitle("Liabilities exceed bond amounts for large firms \n but small firms look covered if plug costs are low.")+
+  #ggtitle("Liabilities exceed bond amounts for large firms \n but small firms look covered if plug costs are low.")+
   scale_y_continuous(labels = dollar)+
   ylab("Total Plugging Liabilities")+
   scale_x_continuous(label=dollar)+
@@ -373,7 +373,7 @@ ggsave(filename="UtahDNRAnalytics/Figures/BondsLiabilities1.jpg",
 ggplot(data=operator_dat%>%filter(bond<5000000))+
   geom_point(aes(x=bond, y=liability1, colour=tier))+
   geom_abline(slope=1, intercept=0)+
-  ggtitle("Policy does a great job of covering smaller firms if \n if plug costs are low.")+
+  #ggtitle("Policy does a great job of covering smaller firms if \n if plug costs are low.")+
   scale_y_continuous(labels = dollar)+
   ylab("Total Plugging Liabilities")+
   scale_x_continuous(label=dollar)+
@@ -390,7 +390,7 @@ ggsave(filename="UtahDNRAnalytics/Figures/BondsLiabilities1_zoomed.jpg",
 ggplot(data=operator_dat%>%filter(bond<25000000))+
   geom_point(aes(x=bond, y=liability2, colour=tier))+
   geom_abline(slope=1, intercept=0)+
-  ggtitle("Liabilities exceed bond amounts for large firms")+
+  #ggtitle("Liabilities exceed bond amounts for large firms")+
   scale_y_continuous(labels = dollar)+
   ylab("Total Plugging Liabilities")+
   scale_x_continuous(label=dollar)+
@@ -406,7 +406,7 @@ ggsave(filename="UtahDNRAnalytics/Figures/BondsLiabilities2.jpg",
 ggplot(data=operator_dat%>%filter(bond<5000000))+
   geom_point(aes(x=bond, y=liability2, colour=tier))+
   geom_abline(slope=1, intercept=0)+
-  ggtitle("If plugging costs are high then the policy still looks fairly good.")+
+  #ggtitle("If plugging costs are high then the policy still looks fairly good.")+
   scale_y_continuous(labels = dollar)+
   ylab("Total Plugging Liabilities")+
   scale_x_continuous(label=dollar)+
@@ -422,7 +422,7 @@ ggsave(filename="UtahDNRAnalytics/Figures/BondsLiabilities2_zoomed.jpg",
 ggplot(data=operator_dat%>%filter(bond<1000000))+
   geom_point(aes(x=bond, y=liability2, colour=tier))+
   geom_abline(slope=1, intercept=0)+
-  ggtitle("If plugging costs are high then the policy still looks fairly good.")+
+  #ggtitle("If plugging costs are high then the policy still looks fairly good.")+
   scale_y_continuous(labels = dollar)+
   ylab("Total Plugging Liabilities")+
   scale_x_continuous(label=dollar)+
@@ -434,7 +434,7 @@ ggplot(data=operator_dat%>%filter(bond<1000000))+
 ggplot(data=operator_dat%>%filter(bond<25000000))+
   geom_point(aes(x=bond, y=liability3, colour=tier))+
   geom_abline(slope=1, intercept=0)+
-  ggtitle("Liabilities exceed bond amounts for large firms")+
+  #ggtitle("Liabilities exceed bond amounts for large firms")+
   scale_y_continuous(labels = dollar)+
   ylab("Total Plugging Liabilities")+
   scale_x_continuous(label=dollar)+
@@ -450,7 +450,7 @@ ggsave(filename="UtahDNRAnalytics/Figures/BondsLiabilities3.jpg",
 ggplot(data=operator_dat%>%filter(bond<5000000))+
   geom_point(aes(x=bond, y=liability3, colour=tier))+
   geom_abline(slope=1, intercept=0)+
-  ggtitle("Policy does a great job of covering smaller firms if \n if plug costs are low.")+
+  #ggtitle("Policy does a great job of covering smaller firms if \n if plug costs are low.")+
   scale_y_continuous(labels = dollar)+
   ylab("Total Plugging Liabilities")+
   scale_x_continuous(label=dollar)+
@@ -467,7 +467,7 @@ ggsave(filename="UtahDNRAnalytics/Figures/BondsLiabilities3_zoomed.jpg",
 ggplot(data=operator_dat%>%filter(bond<25000000))+
   geom_point(aes(x=bond, y=liability4, colour=tier))+
   geom_abline(slope=1, intercept=0)+
-  ggtitle("Liabilities exceed bond amounts for large firms")+
+  #ggtitle("Liabilities exceed bond amounts for large firms")+
   scale_y_continuous(labels = dollar)+
   ylab("Total Plugging Liabilities")+
   scale_x_continuous(label=dollar)+
@@ -483,7 +483,7 @@ ggsave(filename="UtahDNRAnalytics/Figures/BondsLiabilities4.jpg",
 ggplot(data=operator_dat%>%filter(bond<5000000))+
   geom_point(aes(x=bond, y=liability4, colour=tier))+
   geom_abline(slope=1, intercept=0)+
-  ggtitle("If plugging costs are high then the policy still looks fairly good.")+
+  #ggtitle("If plugging costs are high then the policy still looks fairly good.")+
   scale_y_continuous(labels = dollar)+
   ylab("Total Plugging Liabilities")+
   scale_x_continuous(label=dollar)+
@@ -520,7 +520,7 @@ operator_dat=operator_dat%>%
 ggplot(data=operator_dat%>%filter(bond<10000000))+
   geom_point(aes(x=bond, y=liability1_marginal, color=tier))+
   geom_abline(slope=1, intercept=0)+
-  ggtitle("New bonds cover marginal and inactive well plugging liability")+
+  #ggtitle("New bonds cover marginal and inactive well plugging liability")+
   scale_y_continuous(labels = dollar)+
   ylab("Total Plugging Liabilities for Marginal/Inactive Wells")+
   scale_x_continuous(label=dollar)+
@@ -537,7 +537,7 @@ ggsave(filename="UtahDNRAnalytics/Figures/InactiveMarginalLiabilities1.jpg",
 ggplot(data=operator_dat%>%filter(bond<10000000))+
   geom_point(aes(x=bond, y=liability2_marginal, colour=tier))+
   geom_abline(slope=1, intercept=0)+
-  ggtitle("New bonds don't cover marginal and inactive well plugging liability \n if plugging costs are high")+
+  #ggtitle("New bonds don't cover marginal and inactive well plugging liability \n if plugging costs are high")+
   scale_y_continuous(labels = dollar)+
   ylab("Total Plugging Liabilities for Marginal/Inactive Wells")+
   scale_x_continuous(label=dollar)+
@@ -553,7 +553,7 @@ ggsave(filename="UtahDNRAnalytics/Figures/InactiveMarginalLiabilities2.jpg",
 ggplot(data=operator_dat%>%filter(bond<10000000))+
   geom_point(aes(x=bond, y=liability3_marginal, color=tier))+
   geom_abline(slope=1, intercept=0)+
-  ggtitle("New bonds cover marginal and inactive well plugging liability")+
+  #ggtitle("New bonds cover marginal and inactive well plugging liability")+
   scale_y_continuous(labels = dollar)+
   ylab("Total Plugging Liabilities for Marginal/Inactive Wells")+
   scale_x_continuous(label=dollar)+
@@ -570,7 +570,7 @@ ggsave(filename="UtahDNRAnalytics/Figures/InactiveMarginalLiabilities3.jpg",
 ggplot(data=operator_dat%>%filter(bond<10000000))+
   geom_point(aes(x=bond, y=liability4_marginal, colour=tier))+
   geom_abline(slope=1, intercept=0)+
-  ggtitle("If plugging costs are high, then firms which don't meet tier \n requirements (tier 4) look covered.")+
+  #ggtitle("If plugging costs are high, then firms which don't meet tier \n requirements (tier 4) look covered.")+
   scale_y_continuous(labels = dollar)+
   ylab("Total Plugging Liabilities for Marginal/Inactive Wells")+
   scale_x_continuous(label=dollar)+
@@ -586,7 +586,7 @@ ggsave(filename="UtahDNRAnalytics/Figures/InactiveMarginalLiabilities4.jpg",
 ggplot(data=operator_dat%>%filter(tier==4, tot_BOE<1000000))+
   geom_point(aes(x=bond, y=liability2_marginal))+
   geom_abline(slope=1, intercept=0)+
-  ggtitle("Tier 4 Firms Which Produce Less than 1,000,000 BOE/yr \n Plugging liabilities exceed bond amounts if plugging costs are high.")+
+  #ggtitle("Tier 4 Firms Which Produce Less than 1,000,000 BOE/yr \n Plugging liabilities exceed bond amounts if plugging costs are high.")+
   scale_y_continuous(labels = dollar)+
   ylab("Total Plugging Liabilities for Marginal/Inactive Wells")+
   scale_x_continuous(label=dollar)+
@@ -602,7 +602,7 @@ ggsave(filename="UtahDNRAnalytics/Figures/InactiveMarginalLiabilities2_Tier4Smal
 ggplot(data=operator_dat%>%filter(tier==4, tot_BOE<1000000))+
   geom_point(aes(x=bond, y=liability1_marginal))+
   geom_abline(slope=1, intercept=0)+
-  ggtitle("Tier 4 Firms Which Produce Less than 1,000,000 BOE/yr \n Plugging liabilities are less than bond amounts if plugging costs are low")+
+  #ggtitle("Tier 4 Firms Which Produce Less than 1,000,000 BOE/yr \n Plugging liabilities are less than bond amounts if plugging costs are low")+
   scale_y_continuous(labels = dollar)+
   ylab("Total Plugging Liabilities for Marginal/Inactive Wells")+
   scale_x_continuous(label=dollar)+
