@@ -1,10 +1,21 @@
 \documentclass{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage{csquotes}
+\usepackage{latexsym,amsmath,xcolor,multicol,booktabs,calligra, animate, subfig}
+\usepackage{graphicx,pstricks,listings,stackengine, bbm}
+\usepackage{tikz}
+\usetikzlibrary{fit,tikzmark}   
+\usepackage{booktabs,cellspace}
+\usepackage{color, colortbl}
+\usepackage{hyperref}
+
 %Information to be included in the title page:
 \title{Analysis of Utah's Proposed Regulation}
 \author{Lauren Beatty\\ lbeatty@edf.org}
 \institute{Environmental Defense Fund}
 \date{\today}
-\logo{\includegraphics[height=1cm]{overleaf-logo}}
+\logo{\includegraphics[height=1cm]{EDF_color_printCMYK_2022.png}}
 
 
 \begin{document}
@@ -12,8 +23,71 @@
 \frame{\titlepage}
 
 \begin{frame}
-\frametitle{Sample frame title}
-This is some text in the first frame. This is some text in the first frame. This is some text in the first frame.
+\frametitle{Does the Proposed Regulation Sufficiently Cover Plugging Liabilities?}
+    Compare hypothetical bond amounts by firm against:
+    \begin{itemize}
+        \item estimated plugging costs for \textit{all} wells
+        \item estimated plugging costs for inactive/marginal wells.
+    \end{itemize}
+    Summary of findings:
+    \begin{itemize}
+        \item If plugging costs are high, then the proposed regulation doesn't cover total liabilities for many firms.
+        \item \textit{However}, the proposed regulation does appear to sufficiently cover plugging liabilities for marginal/inactive wells.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Methods/Assumptions}
+\label{BondCalc}
+To calculate hypothetical firm-level bonds I conduct the following steps:
+\begin{enumerate}
+    \item For each well in the state, sum production from 06/2022 until 06/2023 and classify each well as marginal ($<$2 BOE per day), active, or inactive.
+    \item For each operator, calculate which tier they would fall in (determined by their percentage of inactive/marginal wells and total production for the year).
+    \item Calculate their blanket bond and marginal/inactive well bond for each operator along with their per-well bonds for wells inactive $>12$ months.
+    \item For operators that don't meet tier requirements, calculate their total bonds as the sum of well bonds using the April draft of the proposed regulation.
+\end{enumerate}
+\hyperlink{bondingnumbers}{\beamerskipbutton{Individual Bond Numbers}}
+\end{frame}
+
+\begin{frame}{Methods/Assumptions}
+    To calculate estimate plugging costs I make four cost assumptions:
+    \begin{enumerate}
+        \item Assume each well costs $\$37,500$ to plug.
+        \item Assume each well costs $\$75,000$ to plug.
+        \item Assume each well costs $\$6$ per well-foot of depth to plug.
+        \item Assume each well costs $\$12$ per well-foot of depth to plug.
+    \end{enumerate}
+    \vspace{.7cm}
+    The estimates produced by assuming $\$6$ per foot look largely like the estimates produced from assuming $\$37,500$ per well.  Similarly, the estimates assuming $\$12$ per foot look largely like the estimates from assuming $\$75,000$ per well.
+\end{frame}
+
+\begin{frame}{Frame Title}
+    
+\end{frame}
+
+\begin{frame}{Thanks!}
+    All of the code to reproduce these charts is available at: \href{https://github.com/lbeatty1/UtahDNRAnalytics}{https://github.com/lbeatty1/UtahDNRAnalytics}\\
+    \vspace{1cm}
+
+    Please feel free to contact me at:
+    \href{lbeatty@edf.org}{lbeatty@edf.org}
+\end{frame}
+
+\begin{frame}{Individual Well Bond Numbers}
+\label{bondingnumbers}
+\begin{table}[]
+\begin{tabular}{l|l}
+Depth                                      & Bond    \\
+\hline
+\leq 1,000                          & 10,000  \\
+\textgreater{}1,000 and \leq 3,000  & 20,000  \\
+\textgreater{}3,000 and \leq 6,000  & 40,000  \\
+\textgreater{}6,000 and \leq 9,000  & 65,000  \\
+\textgreater{}9,000 and \leq 12,000 & 85,000  \\
+\textgreater{}12,000                       & 110,000
+\end{tabular}
+\end{table}
+\hyperlink{BondCalc}{\beamerskipbutton{Back}}
+    
 \end{frame}
 
 \end{document}
