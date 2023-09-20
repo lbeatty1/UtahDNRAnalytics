@@ -9,7 +9,7 @@
 \usepackage{booktabs,cellspace}
 \usepackage{color, colortbl}
 \usepackage{hyperref}
-
+\usepackage{color}
 %Information to be included in the title page:
 \title{Analysis of Utah's Proposed Regulation}
 \author{Lauren Beatty\\ lbeatty@edf.org}
@@ -17,6 +17,18 @@
 \date{September 21, 2023}
 \logo{\includegraphics[height=1cm]{EDF_color_printCMYK_2022.png}\hspace*{.03\paperwidth}\vspace{.01\paperwidth}}
 
+
+%Color Pallete
+\definecolor{EDFblue}{RGB}{0.0, 51, 204} % UBC Blue (primary)
+\definecolor{EDFgreen}{RGB}{0, 153, 51} 
+\definecolor{EDFlightgreen}{RGB}{161, 226, 20}
+\definecolor{EDFcyan}{RGB}{51,204,255}
+\setbeamercolor{structure}{fg=EDFblue} 
+\setbeamercolor{button}{bg=EDFblue,fg=white}
+\setbeamertemplate{navigation symbols}{}
+
+% Override palette coloring with secondary
+\setbeamercolor{subsection in head/foot}{bg=UBCgrey,fg=white}
 
 \begin{document}
 
@@ -32,7 +44,7 @@
     Summary of findings:
     \begin{itemize}
         \item If plugging costs are high, then the proposed regulation doesn't cover total liabilities for many firms.
-        \item \textit{However}, the proposed regulation does appear to sufficiently cover plugging liabilities for marginal/inactive wells.
+        \item \textit{However}, the proposed regulation does appear to sufficiently cover plugging liabilities for marginal/inactive wells for most firms.
         \item Meeting higher tier requirements can provide significant cost savings for operators.
     \end{itemize}
 \end{frame}
@@ -42,7 +54,7 @@
 \vspace{-0.2cm}
 To calculate firm-level bonds I conduct the following steps:
 \begin{enumerate}
-    \item For each well in the state, sum production from 06/2022 until 06/2023 and classify each well as marginal ($<$2 BOE per day), active, or inactive.
+    \item For each well, sum production from 06/2022 until 06/2023 and classify each well as marginal ($<$2 BOE per day), active, or inactive.
     \item For each operator, calculate which tier they would fall in (determined by their percentage of inactive/marginal wells and total production for the year).
     \item Calculate the blanket bond and marginal/inactive depth well bond for each operator along with their per-well bonds for wells inactive $>12$ months.
     \item For operators that don't meet tier requirements (we call tier 4), calculate their total bonds as the sum of individual well bonds using the April draft of the proposed regulation.
@@ -103,6 +115,7 @@ To calculate firm-level bonds I conduct the following steps:
 \end{frame}
 
 \begin{frame}{Thanks!}
+\label{Thanks}
     All of the code to reproduce these charts is available at: \href{https://github.com/lbeatty1/UtahDNRAnalytics}{https://github.com/lbeatty1/UtahDNRAnalytics}\\
     \vspace{1cm}
 
@@ -110,9 +123,11 @@ To calculate firm-level bonds I conduct the following steps:
     \vspace{1cm}
 
     Please feel free to contact me at:
-    \href{lbeatty@edf.org}{lbeatty@edf.org}
+    \href{lbeatty@edf.org}{lbeatty@edf.org}\\
+    \vspace{1cm}
 
-    \hyperlink{UPA}{\beamerskipbutton{UPA Tier Suggestions}}
+    Additional Content:
+    \hyperlink{UPA}{\beamerskipbutton{UPA Tier Suggestions}} \hyperlink{MarginalInactiveLiability3}{\beamerskipbutton{Per-foot Cost Estimates}}
 \end{frame}
 
 \begin{frame}{Individual Well Bond Numbers}
@@ -162,11 +177,13 @@ Depth                                      & Bond    \\
 \end{frame}
 
 \begin{frame}{$\$6$ per foot to plug}
+\label{MarginalInactiveLiability3}
     \includegraphics[width=0.8\textwidth]{Figures/InactiveMarginalLiabilities3.jpg}
 \end{frame}
 
 \begin{frame}{$\$12$ per foot to plug}
-    \includegraphics[width=0.8\textwidth]{Figures/InactiveMarginalLiabilities4.jpg}
+    \includegraphics[width=0.8\textwidth]{Figures/InactiveMarginalLiabilities4.jpg}\\
+    \hyperlink{Thanks}{\beamerskipbutton{Back}}
 \end{frame}
 
 \begin{frame}{UPA Tier Suggestions}
@@ -185,8 +202,8 @@ Depth                                      & Bond    \\
 
 \begin{frame}{UPA Tier Suggestions}
 \label{UPA}
-\includegraphics[width=0.8\textwidth]{Figures/UPA_Suggestion_Bond_Changes.jpg}
-    
+\includegraphics[width=0.8\textwidth]{Figures/UPA_Suggestion_Bond_Changes.jpg}\\
+\hyperlink{Thanks}{\beamerskipbutton{Back}}
 \end{frame}
 
 \end{document}
