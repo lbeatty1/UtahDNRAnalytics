@@ -14,7 +14,7 @@
 \title{Analysis of Utah's Proposed Regulation}
 \author{Lauren Beatty\\ lbeatty@edf.org}
 \institute{Environmental Defense Fund}
-\date{\today}
+\date{September 21, 2023}
 \logo{\includegraphics[height=1cm]{EDF_color_printCMYK_2022.png}\hspace*{.03\paperwidth}\vspace{.01\paperwidth}}
 
 
@@ -39,12 +39,13 @@
 
 \begin{frame}{Methods/Assumptions}
 \label{BondCalc}
-To calculate hypothetical firm-level bonds I conduct the following steps:
+\vspace{-0.2cm}
+To calculate firm-level bonds I conduct the following steps:
 \begin{enumerate}
     \item For each well in the state, sum production from 06/2022 until 06/2023 and classify each well as marginal ($<$2 BOE per day), active, or inactive.
     \item For each operator, calculate which tier they would fall in (determined by their percentage of inactive/marginal wells and total production for the year).
-    \item Calculate their blanket bond and marginal/inactive well bond for each operator along with their per-well bonds for wells inactive $>12$ months.
-    \item For operators that don't meet tier requirements, calculate their total bonds as the sum of well bonds using the April draft of the proposed regulation.
+    \item Calculate the blanket bond and marginal/inactive depth well bond for each operator along with their per-well bonds for wells inactive $>12$ months.
+    \item For operators that don't meet tier requirements (we call tier 4), calculate their total bonds as the sum of individual well bonds using the April draft of the proposed regulation.
 \end{enumerate}
 \hyperlink{bondingnumbers}{\beamerskipbutton{Individual Bond Numbers}}
 \end{frame}
@@ -64,7 +65,40 @@ To calculate hypothetical firm-level bonds I conduct the following steps:
     \hyperlink{depths}{\beamerskipbutton{Well Depths}}
 \end{frame}
 
-\begin{frame}{Frame Title}
+\begin{frame}{If plugging costs are low, bonds cover total liabilities for many firms.}
+\label{Fig1}
+\begin{columns}
+          \column{0.6\linewidth}
+             \centering
+             \includegraphics[width=1.08\textwidth]{Figures/BondsLiabilities1.jpg}
+           \column{0.5\linewidth}
+              \begin{itemize}
+                  \item Dots above the line represent firms whose plugging liabilities exceed bonding amounts.
+                  \item Firms that meet tier 1 and tier 2 requirements have significantly lower bond requirements than total plugging liabilities.
+                  \item Smaller firms which don't meet tier requirements look well-bonded.
+              \end{itemize}
+\end{columns} 
+\vspace{1cm}
+\hyperlink{Liability1Zoom}{\beamerskipbutton{Zoomed}}
+\end{frame}
+
+
+\begin{frame}{If plugging costs are high, many firms have uncovered liabilities.}
+\label{Fig2}
+\vspace{-0.5cm}
+\centering
+\includegraphics[width=0.8\textwidth]{Figures/BondsLiabilities2.jpg}
+
+\hyperlink{Liability2Zoom}{\beamerskipbutton{Zoomed}}
+    
+\end{frame}
+
+\begin{frame}{Even if plugging costs are high, the policy does a good job of covering liabilities from marginal/inactive wells.}
+\label{Fig2Marginal}
+\vspace{-0.5cm}
+    \includegraphics[width=0.8\textwidth]{Figures/InactiveMarginalLiabilities2.jpg}\\
+    \hyperlink{Tier4Liability2}{\beamerskipbutton{Tier 4 Only}}
+
     
 \end{frame}
 
@@ -72,8 +106,13 @@ To calculate hypothetical firm-level bonds I conduct the following steps:
     All of the code to reproduce these charts is available at: \href{https://github.com/lbeatty1/UtahDNRAnalytics}{https://github.com/lbeatty1/UtahDNRAnalytics}\\
     \vspace{1cm}
 
+    Data is available from Utah DNR at:\href{https://oilgas.utah.gov/dataResearchCenter.php}{https://oilgas.utah.gov/dataResearchCenter.php}\\
+    \vspace{1cm}
+
     Please feel free to contact me at:
     \href{lbeatty@edf.org}{lbeatty@edf.org}
+
+    \hyperlink{UPA}{\beamerskipbutton{UPA Tier Suggestions}}
 \end{frame}
 
 \begin{frame}{Individual Well Bond Numbers}
@@ -100,4 +139,39 @@ Depth                                      & Bond    \\
     \includegraphics[scale=0.12]{Figures/DepthHistogram.jpg}\\
     \hyperlink{costcalc}{\beamerskipbutton{Back}}
 \end{frame}
+
+\begin{frame}{Zoomed Plot: $\$37,500$ per well costs}
+\label{Liability1Zoom}
+\includegraphics[width=0.8\textwidth]{Figures/BondsLiabilities1_zoomed.jpg}\\
+\hyperlink{Fig1}{\beamerskipbutton{Back}}
+\end{frame}
+
+
+\begin{frame}{Zoomed Plot: $\$75,000$ per well costs}
+\label{Liability2Zoom}
+\includegraphics[width=0.8\textwidth]{Figures/BondsLiabilities2_zoomed.jpg}\\
+\hyperlink{Fig2}{\beamerskipbutton{Back}}
+\end{frame}
+
+\begin{frame}{Marginal/Inactive Plugging Liabilities For Non-Tiered Firms}
+\label{Tier4Liability2}
+\vspace{-0.3cm}
+    \includegraphics[width=0.8\textwidth]{Figures/InactiveMarginalLiabilities2_Tier4SmallFirms.jpg}
+
+    \hyperlink{Fig2Marginal}{\beamerskipbutton{Back}}
+\end{frame}
+
+\begin{frame}{$\$6$ per foot to plug}
+    \includegraphics[width=0.8\textwidth]{Figures/InactiveMarginalLiabilities3.jpg}
+\end{frame}
+
+\begin{frame}{$\$12$ per foot to plug}
+    \includegraphics[width=0.8\textwidth]{Figures/InactiveMarginalLiabilities4.jpg}
+\end{frame}
+
+\begin{frame}{UPA Tier Suggestions}
+\label{UPA}
+    
+\end{frame}
+
 \end{document}
