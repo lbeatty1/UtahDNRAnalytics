@@ -15,7 +15,7 @@
 \author{Lauren Beatty\\ lbeatty@edf.org}
 \institute{Environmental Defense Fund}
 \date{\today}
-\logo{\includegraphics[height=1cm]{EDF_color_printCMYK_2022.png}}
+\logo{\includegraphics[height=1cm]{EDF_color_printCMYK_2022.png}\hspace*{.03\paperwidth}\vspace{.01\paperwidth}}
 
 
 \begin{document}
@@ -33,6 +33,7 @@
     \begin{itemize}
         \item If plugging costs are high, then the proposed regulation doesn't cover total liabilities for many firms.
         \item \textit{However}, the proposed regulation does appear to sufficiently cover plugging liabilities for marginal/inactive wells.
+        \item Meeting higher tier requirements can provide significant cost savings for operators.
     \end{itemize}
 \end{frame}
 
@@ -49,6 +50,7 @@ To calculate hypothetical firm-level bonds I conduct the following steps:
 \end{frame}
 
 \begin{frame}{Methods/Assumptions}
+\label{costcalc}
     To calculate estimate plugging costs I make four cost assumptions:
     \begin{enumerate}
         \item Assume each well costs $\$37,500$ to plug.
@@ -58,6 +60,8 @@ To calculate hypothetical firm-level bonds I conduct the following steps:
     \end{enumerate}
     \vspace{.7cm}
     The estimates produced by assuming $\$6$ per foot look largely like the estimates produced from assuming $\$37,500$ per well.  Similarly, the estimates assuming $\$12$ per foot look largely like the estimates from assuming $\$75,000$ per well.
+
+    \hyperlink{depths}{\beamerskipbutton{Well Depths}}
 \end{frame}
 
 \begin{frame}{Frame Title}
@@ -90,4 +94,10 @@ Depth                                      & Bond    \\
     
 \end{frame}
 
+\begin{frame}{Well Depths}
+\label{depths}
+\centering
+    \includegraphics[scale=0.12]{Figures/DepthHistogram.jpg}\\
+    \hyperlink{costcalc}{\beamerskipbutton{Back}}
+\end{frame}
 \end{document}
