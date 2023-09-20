@@ -227,7 +227,7 @@ operator_dat = operator_dat%>%
          BOEperday=tot_BOE/365,
          tier1 = BOEperday>=1000&pct_inactive<=0.2,
          tier2 = BOEperday>=500&pct_inactive<=0.25,
-         tier3 = BOEperday>=200&pct_inactive<=0.3,
+         tier3 = (BOEperday>=200&pct_inactive<=0.3)|(BOEperday>=1000),
          tier=4-tier1-tier2-tier3)
 
 
