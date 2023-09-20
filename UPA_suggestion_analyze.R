@@ -296,6 +296,8 @@ operator_dat = operator_dat%>%
 
 operator_dat=operator_dat%>%
   select(Operator, tier, bond, pct_inactive)%>%
+  mutate(tier=as.character(tier),
+         tier=replace(tier, tier=="4", "No tier"))%>%
   rename(tier_UPAsuggestion = tier,
          bond_UPAsuggestion = bond)
 

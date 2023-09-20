@@ -349,7 +349,8 @@ operator_dat=operator_dat%>%
          bondliability2 = bond-liability2,
          bondliability3 = bond-liability3,
          bondliability4 = bond-liability4,
-         tier=factor(tier, levels=c("1", "2", "3", "4")))
+         tier=as.character(tier),
+         tier=replace(tier, tier=="4", "No tier"))
 
 #PLOT LIABILITIES AGAINST BONDS
 
@@ -583,7 +584,7 @@ ggsave(filename="UtahDNRAnalytics/Figures/InactiveMarginalLiabilities4.jpg",
        width=7)
 
 #only for small/Tier4 firms
-ggplot(data=operator_dat%>%filter(tier==4, tot_BOE<1000000))+
+ggplot(data=operator_dat%>%filter(tier=="No tier", tot_BOE<1000000))+
   geom_point(aes(x=bond, y=liability2_marginal))+
   geom_abline(slope=1, intercept=0)+
   #ggtitle("Tier 4 Firms Which Produce Less than 1,000,000 BOE/yr \n Plugging liabilities exceed bond amounts if plugging costs are high.")+
@@ -599,7 +600,7 @@ ggsave(filename="UtahDNRAnalytics/Figures/InactiveMarginalLiabilities2_Tier4Smal
        height=5,
        width=7)
 
-ggplot(data=operator_dat%>%filter(tier==4, tot_BOE<1000000))+
+ggplot(data=operator_dat%>%filter(tier=="No tier", tot_BOE<1000000))+
   geom_point(aes(x=bond, y=liability1_marginal))+
   geom_abline(slope=1, intercept=0)+
   #ggtitle("Tier 4 Firms Which Produce Less than 1,000,000 BOE/yr \n Plugging liabilities are less than bond amounts if plugging costs are low")+
