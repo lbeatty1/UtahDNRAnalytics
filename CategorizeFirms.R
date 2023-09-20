@@ -161,6 +161,20 @@ rm(missingdata)
 well_data = well_data%>%
   filter(FirstProdDate<as.Date("2023-06-01")|is.na(FirstProdDate))
 
+
+##produce histogram of depths
+ggplot(data=well_data%>%filter(depth<25000))+
+  geom_histogram(aes(x=depth))+
+  ggtitle("Histogram of Well Depths")+
+  ylab("Count")+
+  xlab("Depth (ft)")+
+  theme_bw()
+
+ggsave(filename="UtahDNRAnalytics/Figures/DepthHistogram.jpg",
+       device="jpg",
+       height=5,
+       width=7)
+
 #save average well depth
 avgdepth = mean(well_data$depth, na.rm=T)
 #populate missings with average
