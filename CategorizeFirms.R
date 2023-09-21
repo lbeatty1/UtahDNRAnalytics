@@ -642,7 +642,10 @@ ggplot(data=operator_stats%>%filter(bond<10000000))+
   labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs 37500 to plug.")+
   theme_bw()
 
-
+ggsave(filename="UtahDNRAnalytics/Figures/FeeStateLiability1.jpg",
+       device="jpg",
+       height=5,
+       width=7)
 
 
 ggplot(data=operator_stats%>%filter(bond<10000000))+
@@ -653,8 +656,48 @@ ggplot(data=operator_stats%>%filter(bond<10000000))+
   ylab("Total Plugging Liabilities for Fee/State Wells")+
   scale_x_continuous(label=dollar)+
   xlab("Required Bonds")+
-  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs 37500 to plug.")+
+  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs 75000 to plug.")+
   theme_bw()
+
+ggsave(filename="UtahDNRAnalytics/Figures/FeeStateLiability2.jpg",
+       device="jpg",
+       height=5,
+       width=7)
+
+
+ggplot(data=operator_stats%>%filter(bond<10000000))+
+  geom_point(aes(x=bond, y=liability3_feestate, color=tier))+
+  geom_abline(slope=1, intercept=0)+
+  #ggtitle("New bonds cover marginal and inactive well plugging liability")+
+  scale_y_continuous(labels = dollar)+
+  ylab("Total Plugging Liabilities for Fee/State Wells")+
+  scale_x_continuous(label=dollar)+
+  xlab("Required Bonds")+
+  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs $6 per foot to plug.")+
+  theme_bw()
+
+ggsave(filename="UtahDNRAnalytics/Figures/FeeStateLiability3.jpg",
+       device="jpg",
+       height=5,
+       width=7)
+
+
+ggplot(data=operator_stats%>%filter(bond<10000000))+
+  geom_point(aes(x=bond, y=liability4_feestate, color=tier))+
+  geom_abline(slope=1, intercept=0)+
+  #ggtitle("New bonds cover marginal and inactive well plugging liability")+
+  scale_y_continuous(labels = dollar)+
+  ylab("Total Plugging Liabilities for Fee/State Wells")+
+  scale_x_continuous(label=dollar)+
+  xlab("Required Bonds")+
+  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs $12 per foot to plug.")+
+  theme_bw()
+
+ggsave(filename="UtahDNRAnalytics/Figures/FeeStateLiability4.jpg",
+       device="jpg",
+       height=5,
+       width=7)
+
 
 
 #######################
@@ -681,7 +724,10 @@ ggplot(data=operator_stats%>%filter(bond<10000000))+
   xlab("Required Bonds")+
   labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs 37500 to plug.")+
   theme_bw()
-
+ggsave(filename="UtahDNRAnalytics/Figures/FeeStateMarginalLiability1.jpg",
+       device="jpg",
+       height=5,
+       width=7)
 
 ggplot(data=operator_stats%>%filter(bond<10000000))+
   geom_point(aes(x=bond, y=liability2_feestate_marginal, color=tier))+
@@ -693,13 +739,52 @@ ggplot(data=operator_stats%>%filter(bond<10000000))+
   xlab("Required Bonds")+
   labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs 75000 to plug.")+
   theme_bw()
+ggsave(filename="UtahDNRAnalytics/Figures/FeeStateMarginalLiability2.jpg",
+       device="jpg",
+       height=5,
+       width=7)
 
+
+ggplot(data=operator_stats%>%filter(bond<10000000))+
+  geom_point(aes(x=bond, y=liability3_feestate_marginal, color=tier))+
+  geom_abline(slope=1, intercept=0)+
+  #ggtitle("New bonds cover marginal and inactive well plugging liability")+
+  scale_y_continuous(labels = dollar)+
+  ylab("Total Plugging Liabilities for Fee/State Marginal/Inactive Wells")+
+  scale_x_continuous(label=dollar)+
+  xlab("Required Bonds")+
+  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs $6 per foot to plug.")+
+  theme_bw()
+ggsave(filename="UtahDNRAnalytics/Figures/FeeStateMarginalLiability3.jpg",
+       device="jpg",
+       height=5,
+       width=7)
+
+
+ggplot(data=operator_stats%>%filter(bond<10000000))+
+  geom_point(aes(x=bond, y=liability4_feestate_marginal, color=tier))+
+  geom_abline(slope=1, intercept=0)+
+  #ggtitle("New bonds cover marginal and inactive well plugging liability")+
+  scale_y_continuous(labels = dollar)+
+  ylab("Total Plugging Liabilities for Fee/State Marginal/Inactive Wells")+
+  scale_x_continuous(label=dollar)+
+  xlab("Required Bonds")+
+  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs $12 per foot to plug.")+
+  theme_bw()
+ggsave(filename="UtahDNRAnalytics/Figures/FeeStateMarginalLiability4.jpg",
+       device="jpg",
+       height=5,
+       width=7)
 
 ###
 # Plot percentage of liabilities covered by bonds by tier
 operator_stats = operator_stats%>%
   mutate(liability1_marginal_pct = bond/liability1_marginal,
-         liability2_marginal_pct = bond/liability2_marginal)
+         liability2_marginal_pct = bond/liability2_marginal,
+         liability1_marginal_feestate_pct = bond/liability1_feestate_marginal,
+         liability2_marginal_feestate_pct = bond/liability2_feestate_marginal,
+         liability3_marginal_feestate_pct = bond/liability3_feestate_marginal,
+         liability4_marginal_feestate_pct = bond/liability4_feestate_marginal)
 
 ggplot(data=operator_stats)+
   geom_density(aes(x=liability2_marginal_pct, fill=tier), alpha=0.3, bw=0.15)+
@@ -739,4 +824,4 @@ small_risky2 = small_risky_operators%>%
   filter(bond<liability2_marginal)
 print(paste("There are ", nrow(small_risky2), "firms which produce less than 1000000 BOE/yr whose plugging liabilities for marginal/inactive wells exceed bond amounts if plug costs are high (75000 per well)."))
 print(paste("For these firms marginal/inactive plugging liabilities exceed collected bonds by", sum(small_risky2$liability2_marginal)-sum(small_risky2$bond), "if plugging costs are high (75000)"))
-write.csv(operator_dat%>%select(Operator, avg_depth, tot_BOE, tot_wells, tot_inactive, tot_inactive_feestate, tier, bond, liability1, liability2, liability3, liability4, liability1_marginal, liability2_marginal, liability3_marginal, liability4_marginal), "UtahDNRAnalytics/Operator_dat.csv")
+write.csv(operator_stats%>%select(Operator, tot_operator_wells, avg_depth, tot_feestate_wells, tot_inactive, BOEperday, tier, bond, tot_shutin12_feestate_wells, tot_inactive_feestate, starts_with("liability")), "UtahDNRAnalytics/Operator_dat.csv")
