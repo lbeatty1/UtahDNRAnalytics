@@ -12,14 +12,14 @@
 \usepackage{color}
 %Information to be included in the title page:
 \title{Analysis of Utah's Proposed Regulation}
-\author{Lauren Beatty\\ lbeatty@edf.org}
+\author{Lauren Beatty\\ \href{mailto:lbeatty@edf.org}{lbeatty@edf.org}}
 \institute{Environmental Defense Fund}
 \date{September 21, 2023}
 \logo{\includegraphics[height=1cm]{EDF_color_webRGB_2022 (2).png}\hspace*{.03\paperwidth}\vspace{.01\paperwidth}}
 
 
 %Color Pallete
-\definecolor{EDFblue}{RGB}{0.0, 51, 204} % UBC Blue (primary)
+\definecolor{EDFblue}{RGB}{0.0, 51, 204}
 \definecolor{EDFgreen}{RGB}{0, 153, 51} 
 \definecolor{EDFlightgreen}{RGB}{161, 226, 20}
 \definecolor{EDFcyan}{RGB}{51,204,255}
@@ -27,8 +27,8 @@
 \setbeamercolor{button}{bg=EDFblue,fg=white}
 \setbeamertemplate{navigation symbols}{}
 
-% Override palette coloring with secondary
-\setbeamercolor{subsection in head/foot}{bg=UBCgrey,fg=white}
+\hypersetup{colorlinks,linkcolor=EDFblue,urlcolor=EDFblue}
+
 
 \begin{document}
 
@@ -56,10 +56,10 @@ To calculate firm-level bonds I conduct the following steps:
 \begin{enumerate}
     \item For each well, sum production from 06/2022 until 06/2023 and classify each well as marginal ($<$2 BOE per day), active, or inactive.
     \item For each operator, calculate which tier they would fall in (determined by their percentage of inactive/marginal wells and total production for the year).
-    \item Calculate the blanket bond and marginal/inactive depth well bond for each operator along with their per-well bonds for wells inactive $>12$ months.
-    \item For operators that don't meet tier requirements (we call tier 4), calculate their total bonds as the sum of individual well bonds using the April draft of the proposed regulation.
+    \item Calculate the blanket bond and marginal/inactive depth well bond for each operator along with their individual well bonds for wells inactive $>12$ months.
+    \item For operators that don't meet tier requirements, calculate their total bonds as the sum of individual well bonds using the April draft of the proposed regulation.
 \end{enumerate}
-\hyperlink{bondingnumbers}{\beamerbutton{Individual Bond Numbers}}
+\hyperlink{bondingnumbers}{\beamerbutton{Individual Well Bond Numbers}}
 \end{frame}
 
 \begin{frame}{Methods/Assumptions}
@@ -123,7 +123,7 @@ To calculate firm-level bonds I conduct the following steps:
     \vspace{1cm}
 
     Please feel free to contact me at:
-    \href{lbeatty@edf.org}{lbeatty@edf.org}\\
+    \href{mailto:lbeatty@edf.org}{lbeatty@edf.org}\\
     \vspace{1cm}
 
     Additional Content:
