@@ -651,7 +651,6 @@ ggsave(filename="UtahDNRAnalytics/Figures/FeeStateLiability1.jpg",
 ggplot(data=operator_stats%>%filter(bond<10000000))+
   geom_point(aes(x=bond, y=liability2_feestate, color=tier))+
   geom_abline(slope=1, intercept=0)+
-  #ggtitle("New bonds cover marginal and inactive well plugging liability")+
   scale_y_continuous(labels = dollar)+
   ylab("Total Plugging Liabilities for Fee/State Wells")+
   scale_x_continuous(label=dollar)+
