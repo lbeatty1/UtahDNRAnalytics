@@ -9,6 +9,7 @@ tier1_blanket = function(n){
 }
 
 tier1_marginalbond = function(d){
+  if(is.na(d)){return(NA)}
   if(d<=500){return(2500)}
   if(d>=501&d<=1000){return(5000)}
   if(d>=1001&d<=3000){return(10000)}
@@ -29,6 +30,7 @@ tier2_blanket = function(n){
 }
 
 tier2_marginalbond = function(d){
+  if(is.na(d)){return(NA)}
   if(d<=500){return(3750)}
   if(d>=501&d<=1000){return(7500)}
   if(d>=1001&d<=3000){return(15000)}
@@ -49,6 +51,7 @@ tier3_blanket = function(n){
 }
 
 tier3_marginalbond = function(d){
+  if(is.na(d)){return(NA)}
   if(d<=500){return(5000)}
   if(d>=501&d<=1000){return(10000)}
   if(d>=1001&d<=3000){return(20000)}
@@ -57,3 +60,40 @@ tier3_marginalbond = function(d){
   if(d>=9001&d<=12000){return(85000)}
   if(d>=12000){return(110000)}
 }
+
+######################
+## UPA Schedule
+#####################
+
+tier1_blanket_UPA = function(n){
+  if(n==0){return(0)}
+  if(n>=1&n<=10){return(300000)}
+  if(n>=11&n<=100){return(600000)}
+  if(n>=101&n<=500){return(900000)}
+  if(n>=501&n<=1000){return(1200000)}
+  if(n>=1001&n<=1300){return(1500000)}
+  if(n>=1301){return(1800000)}
+}
+
+
+tier2_blanket_UPA = function(n){
+  if(n==0){return(0)}
+  if(n>=1&n<=10){return(450000)}
+  if(n>=11&n<=100){return(900000)}
+  if(n>=101&n<=500){return(1350000)}
+  if(n>=501&n<=1000){return(1800000)}
+  if(n>=1001&n<=1300){return(2250000)}
+  if(n>=1301){return(2700000)}
+}
+
+
+tier3_blanket_UPA = function(n){
+  if(n==0){return(0)}
+  if(n>=1&n<=10){return(600000)}
+  if(n>=11&n<=100){return(1200000)}
+  if(n>=101&n<=500){return(1800000)}
+  if(n>=501&n<=1000){return(2400000)}
+  if(n>=1001&n<=1300){return(3000000)}
+  if(n>=1301){return(3600000)}
+}
+

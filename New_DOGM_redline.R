@@ -26,24 +26,24 @@ library(data.table)
 
 setwd("C:/Users/lbeatty/Documents/")
 data_dir = 'UtahData/'
-code_dir = 'UtahDNRAnalytics/'
 
-source(paste(code_dir, "bond_funs.R", sep=''))
+source("UtahDNRAnalytics/bond_funs.R")
 
 prod_data = read.csv(paste(data_dir, "Production2020To2024.csv", sep=''))      ## Downloaded from https://oilgas.ogm.utah.gov/pub/Database/Production2020To2024.zip
 wells = read.csv(paste(data_dir, "Wells.csv", sep=''))                         ## Downloaded from https://oilgas.ogm.utah.gov/pub/Database/Wells.zip
 wellhistory = read.csv(paste(data_dir, "WellHistory.csv", sep=''))             ## Downloaded from https://oilgas.ogm.utah.gov/pub/Database/WellHistory.zip
+
+#maybe 300 form approvals
+#look at lease type
 #####################
 # Get some numbers ##
 #####################
 
-write.table(data.frame(), file=paste(code_dir, "/descriptive_facts.csv", sep=""), sep=",", row.names=F, append=F)
+print(paste("Number of unique operators in production data:", length(unique(prod_data$Oper_No))))
+print(paste("Number of unique wells in production data: ", length(unique(prod_data$API))))
 
-write.table(t(c("Number of unique operators in production data:", length(unique(prod_data$Oper_No)))), file=paste(code_dir, "/descriptive_facts.csv", sep=""), sep=",", row.names=F, append=T, col.names = F)
-write.table(t(c("Number of unique wells in production data: ", length(unique(prod_data$API)))), file=paste(code_dir, "/descriptive_facts.csv", sep=""), sep=",", row.names=F, append=T, col.names = F)
-
-write.table(t(c("Number of unique operators in well data:", length(unique(wells$OperatorNo)))), file=paste(code_dir, "/descriptive_facts.csv", sep=""), sep=",", row.names=F, append=T, col.names = F)
-write.table(t(c("Number of unique wells in well data: ", length(unique(wells$API)))), file=paste(code_dir, "/descriptive_facts.csv", sep=""), sep=",", row.names=F, append=T, col.names = F)
+print(paste("Number of unique operators in well data:", length(unique(wells$OperatorNo))))
+print(paste("Number of unique wells in wells data: ", length(unique(wells$API))))
 
 ##################################################
 ## Format Data a little, and filter out garbage ##
@@ -63,8 +63,8 @@ wells = wells%>%
          API10=substr(API, 1, 10),
          AbandonDate=as.Date(AbandonDate,"%Y-%m-%d"))
 
-write.table(t(c("Updated number of unique operators in well data:", length(unique(wells$OperatorNo)))), file=paste(code_dir, "/descriptive_facts.csv", sep=""), sep=",", row.names=F, append=T, col.names = F)
-write.table(t(c("Updated number of unique wells in well data: ", length(unique(wells$API)))), file=paste(code_dir, "/descriptive_facts.csv", sep=""), sep=",", row.names=F, append=T, col.names = F)
+print(paste("Updated number of unique operators in well data:", length(unique(wells$OperatorNo))))
+print(paste("Updated number of unique wells in wells data: ", length(unique(wells$API))))
 
 
 ##### Get depth by API10
@@ -74,9 +74,9 @@ wellhistory = wellhistory%>%
          MD=as.numeric(MD),
          TVD=as.numeric(TVD))%>%
   select(API, FirstProdDate, SideTrack, MD, TVD, WorkType, CurrentWellStatus, CurrentWellType)
-
 #looks like occasionally some work is done to deepen
 #just need depths, so I'll take max by API10
+
 welldepth=wellhistory%>%
   group_by(API)%>%
   summarise(depth=max(TVD,na.rm=T),
@@ -88,6 +88,12 @@ welldepth=welldepth%>%
 
 wells=left_join(wells, welldepth, by=c("API10"="API"))
 rm(wellhistory, welldepth)
+
+# injection_wells = wells%>%
+#   filter(welltype%in%c("WI", "GI", "WD", "WS", "GS"))
+# 
+# wells = wells%>%
+#   filter(welltype%in%c("OW", "GW", "OGW", "OWI", "GWI", "OGI", "GGI", "OWD", "GWD"))
 
 ################################
 ## Aggregate production####
@@ -168,19 +174,6 @@ missingdata=well_data%>%
 ## Produce flags, figure out bonds##
 ####################################
 
-##produce histogram of depths
-ggplot(data=well_data%>%filter(depth<25000))+
-  geom_histogram(aes(x=depth))+
-  ggtitle("Histogram of Well Depths")+
-  ylab("Count")+
-  xlab("Depth (ft)")+
-  theme_bw()
-
-ggsave(filename="UtahDNRAnalytics/Figures/DepthHistogram.jpg",
-       device="jpg",
-       height=5,
-       width=7)
-
 #save average well depth
 avgdepth = mean(well_data$depth, na.rm=T)
 #populate missings with average
@@ -192,7 +185,7 @@ well_data = well_data%>%
 well_data=well_data%>%
   mutate(Oil=replace(Oil, is.na(Oil), 0),
          Gas=replace(Gas, is.na(Gas), 0),
-         BOEtot=Oil+Gas/6,
+         BOEtot=Oil+Gas*6,
          BOEperday = BOEtot/(n_reports*30),
          BOEperday = replace(BOEperday, is.na(n_reports), 0),
          fee_state_flag=LeaseType=="FEE"|LeaseType=="STATE",
@@ -208,7 +201,7 @@ well_data=well_data%>%
          marginal_flag=(BOEperday<=2&welltype%in%c("OW", "GW", "OGW")),
          inactive_flag = (wellstatus%in%c("S", "TA", "I")&time_shutin>0&welltype%in%c("OW", "GW", "OGW"))|(wellstatus%in%c("S", "TA", "I")&!welltype%in%c("OW", "GW", "OGW")|(wellstatus%in%c("S", "TA", "I")&shutin12_flag==1&welltype%in%c("OW", "GW", "OGW"))),
          inactive_marginal_flag=pmax(marginal_flag, inactive_flag),
-         UPA_inactive = pmax(shutin12_flag&welltype%in%c("OW", "GW", "OGW"), inactive_flag&welltype%in%c("WI", "GI", "WD", "GS"))) 
+         UPA_inactive = pmax(shutin12_flag&welltype%in%c("OW", "GW", "OGW")&wellstatus==("P"), inactive_flag&welltype%in%c("WI", "GI", "WD", "GS"))) 
 
 View(well_data%>%group_by(inactive_flag, marginal_flag, welltype, shutin12_flag, UPA_inactive)%>%summarise(n=n()))
 
@@ -396,7 +389,7 @@ operator_stats=operator_stats%>%
 ####################
 ## PLOTS ###########
 #####################
-## Just consider marginal and inactive wells
+## Just consider marginal and inactive wells?
 ##
 operator_liabilities_marginalinactive = well_data%>%
   filter(inactive_marginal_flag==1)%>%
@@ -408,266 +401,6 @@ operator_liabilities_marginalinactive = well_data%>%
 
 operator_stats = left_join(operator_stats, operator_liabilities_marginalinactive, by="Operator")
 
-## Assumption 1
-ggplot(data=operator_stats%>%filter(bond<10000000))+
-  geom_point(aes(x=bond, y=liability1_marginal, color=tier))+
-  geom_abline(slope=1, intercept=0)+
-  #ggtitle("New bonds cover marginal and inactive well plugging liability")+
-  scale_y_continuous(labels = dollar)+
-  ylab("Total Plugging Liabilities for Marginal/Inactive Wells")+
-  scale_x_continuous(label=dollar)+
-  xlab("Required Bonds")+
-  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs 37500 to plug.")+
-  theme_bw()
-
-ggsave(filename="UtahDNRAnalytics/Figures/InactiveMarginalLiabilities1.jpg",
-       device="jpg",
-       height=5,
-       width=7)
-
-## Assumption 2
-ggplot(data=operator_stats%>%filter(bond<10000000))+
-  geom_point(aes(x=bond, y=liability2_marginal, colour=tier))+
-  geom_abline(slope=1, intercept=0)+
-  #ggtitle("New bonds don't cover marginal and inactive well plugging liability \n if plugging costs are high")+
-  scale_y_continuous(labels = dollar)+
-  ylab("Total Plugging Liabilities for Marginal/Inactive Wells")+
-  scale_x_continuous(label=dollar)+
-  xlab("Required Bonds")+
-  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs 75000 to plug.")+
-  theme_bw()
-ggsave(filename="UtahDNRAnalytics/Figures/InactiveMarginalLiabilities2.jpg",
-       device="jpg",
-       height=5,
-       width=7)
-
-## Assumption 3
-ggplot(data=operator_stats%>%filter(bond<10000000))+
-  geom_point(aes(x=bond, y=liability3_marginal, color=tier))+
-  geom_abline(slope=1, intercept=0)+
-  #ggtitle("New bonds cover marginal and inactive well plugging liability")+
-  scale_y_continuous(labels = dollar)+
-  ylab("Total Plugging Liabilities for Marginal/Inactive Wells")+
-  scale_x_continuous(label=dollar)+
-  xlab("Required Bonds")+
-  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs $6/foot to plug.")+
-  theme_bw()
-
-ggsave(filename="UtahDNRAnalytics/Figures/InactiveMarginalLiabilities3.jpg",
-       device="jpg",
-       height=5,
-       width=7)
-
-## Assumption 4
-ggplot(data=operator_stats%>%filter(bond<10000000))+
-  geom_point(aes(x=bond, y=liability4_marginal, colour=tier))+
-  geom_abline(slope=1, intercept=0)+
-  #ggtitle("If plugging costs are high, then firms which don't meet tier \n requirements (tier 4) look covered.")+
-  scale_y_continuous(labels = dollar)+
-  ylab("Total Plugging Liabilities for Marginal/Inactive Wells")+
-  scale_x_continuous(label=dollar)+
-  xlab("Required Bonds")+
-  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs $12/foot to plug.")+
-  theme_bw()
-ggsave(filename="UtahDNRAnalytics/Figures/InactiveMarginalLiabilities4.jpg",
-       device="jpg",
-       height=5,
-       width=7)
-
-################################
-#only for small/Tier4 firms#####
-################################
-
-ggplot(data=operator_stats%>%filter(tier=="No tier", tot_BOE<1000000))+
-  geom_point(aes(x=bond, y=liability2_marginal))+
-  geom_abline(slope=1, intercept=0)+
-  #ggtitle("Tier 4 Firms Which Produce Less than 1,000,000 BOE/yr \n Plugging liabilities exceed bond amounts if plugging costs are high.")+
-  scale_y_continuous(labels = dollar)+
-  ylab("Total Plugging Liabilities for Marginal/Inactive Wells")+
-  scale_x_continuous(label=dollar)+
-  xlab("Required Bonds")+
-  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs 75,000 to plug.")+
-  theme_bw()
-
-ggsave(filename="UtahDNRAnalytics/Figures/InactiveMarginalLiabilities2_Tier4SmallFirms.jpg",
-       device="jpg",
-       height=5,
-       width=7)
-
-ggplot(data=operator_stats%>%filter(tier=="No tier", tot_BOE<1000000))+
-  geom_point(aes(x=bond, y=liability1_marginal))+
-  geom_abline(slope=1, intercept=0)+
-  #ggtitle("Tier 4 Firms Which Produce Less than 1,000,000 BOE/yr \n Plugging liabilities are less than bond amounts if plugging costs are low")+
-  scale_y_continuous(labels = dollar)+
-  ylab("Total Plugging Liabilities for Marginal/Inactive Wells")+
-  scale_x_continuous(label=dollar)+
-  xlab("Required Bonds")+
-  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs 37,500 to plug.")+
-  theme_bw()
-
-ggsave(filename="UtahDNRAnalytics/Figures/InactiveMarginalLiabilities1_Tier4SmallFirms.jpg",
-       device="jpg",
-       height=5,
-       width=7)
-
-#########################################
-## What about only fee/state liabilities##
-##########################################
-
-operator_liabilities_feestate = well_data%>%
-  filter(fee_state_flag==1)%>%
-  group_by(Operator)%>%
-  summarise(liability1_feestate=sum(liability1),
-            liability2_feestate=sum(liability2),
-            liability3_feestate=sum(liability3),
-            liability4_feestate=sum(liability4))
-operator_stats = left_join(operator_stats, operator_liabilities_feestate, by="Operator")
-
-
-ggplot(data=operator_stats%>%filter(bond<10000000))+
-  geom_point(aes(x=bond, y=liability1_feestate, color=tier))+
-  geom_abline(slope=1, intercept=0)+
-  #ggtitle("New bonds cover marginal and inactive well plugging liability")+
-  scale_y_continuous(labels = dollar)+
-  ylab("Total Plugging Liabilities for Fee/State Wells")+
-  scale_x_continuous(label=dollar)+
-  xlab("Required Bonds")+
-  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs 37500 to plug.")+
-  theme_bw()
-
-ggsave(filename="UtahDNRAnalytics/Figures/FeeStateLiability1.jpg",
-       device="jpg",
-       height=5,
-       width=7)
-
-
-ggplot(data=operator_stats%>%filter(bond<10000000))+
-  geom_point(aes(x=bond, y=liability2_feestate, color=tier))+
-  geom_abline(slope=1, intercept=0)+
-  scale_y_continuous(labels = dollar)+
-  ylab("Total Plugging Liabilities for Fee/State Wells")+
-  scale_x_continuous(label=dollar)+
-  xlab("Required Bonds")+
-  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs 75000 to plug.")+
-  theme_bw()
-
-ggsave(filename="UtahDNRAnalytics/Figures/FeeStateLiability2.jpg",
-       device="jpg",
-       height=5,
-       width=7)
-
-
-ggplot(data=operator_stats%>%filter(bond<10000000))+
-  geom_point(aes(x=bond, y=liability3_feestate, color=tier))+
-  geom_abline(slope=1, intercept=0)+
-  #ggtitle("New bonds cover marginal and inactive well plugging liability")+
-  scale_y_continuous(labels = dollar)+
-  ylab("Total Plugging Liabilities for Fee/State Wells")+
-  scale_x_continuous(label=dollar)+
-  xlab("Required Bonds")+
-  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs $6 per foot to plug.")+
-  theme_bw()
-
-ggsave(filename="UtahDNRAnalytics/Figures/FeeStateLiability3.jpg",
-       device="jpg",
-       height=5,
-       width=7)
-
-
-ggplot(data=operator_stats%>%filter(bond<10000000))+
-  geom_point(aes(x=bond, y=liability4_feestate, color=tier))+
-  geom_abline(slope=1, intercept=0)+
-  #ggtitle("New bonds cover marginal and inactive well plugging liability")+
-  scale_y_continuous(labels = dollar)+
-  ylab("Total Plugging Liabilities for Fee/State Wells")+
-  scale_x_continuous(label=dollar)+
-  xlab("Required Bonds")+
-  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs $12 per foot to plug.")+
-  theme_bw()
-
-ggsave(filename="UtahDNRAnalytics/Figures/FeeStateLiability4.jpg",
-       device="jpg",
-       height=5,
-       width=7)
-
-
-
-#######################
-## Feestate Marginal###
-#######################
-
-operator_liabilities_feestate_marginal = well_data%>%
-  filter(fee_state_flag==1,
-         inactive_marginal_flag==1)%>%
-  group_by(Operator)%>%
-  summarise(liability1_feestate_marginal=sum(liability1),
-            liability2_feestate_marginal=sum(liability2),
-            liability3_feestate_marginal=sum(liability3),
-            liability4_feestate_marginal=sum(liability4))
-operator_stats = left_join(operator_stats, operator_liabilities_feestate_marginal, by="Operator")
-
-
-ggplot(data=operator_stats%>%filter(bond<10000000))+
-  geom_point(aes(x=bond, y=liability1_feestate_marginal, color=tier))+
-  geom_abline(slope=1, intercept=0)+
-  #ggtitle("New bonds cover marginal and inactive well plugging liability")+
-  scale_y_continuous(labels = dollar)+
-  ylab("Total Plugging Liabilities for Fee/State Marginal/Inactive Wells")+
-  scale_x_continuous(label=dollar)+
-  xlab("Required Bonds")+
-  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs 37500 to plug.")+
-  theme_bw()
-ggsave(filename="UtahDNRAnalytics/Figures/FeeStateMarginalLiability1.jpg",
-       device="jpg",
-       height=5,
-       width=7)
-
-ggplot(data=operator_stats%>%filter(bond<10000000))+
-  geom_point(aes(x=bond, y=liability2_feestate_marginal, color=tier))+
-  geom_abline(slope=1, intercept=0)+
-  #ggtitle("New bonds cover marginal and inactive well plugging liability")+
-  scale_y_continuous(labels = dollar)+
-  ylab("Total Plugging Liabilities for Fee/State Marginal/Inactive Wells")+
-  scale_x_continuous(label=dollar)+
-  xlab("Required Bonds")+
-  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs 75000 to plug.")+
-  theme_bw()
-ggsave(filename="UtahDNRAnalytics/Figures/FeeStateMarginalLiability2.jpg",
-       device="jpg",
-       height=5,
-       width=7)
-
-
-ggplot(data=operator_stats%>%filter(bond<10000000))+
-  geom_point(aes(x=bond, y=liability3_feestate_marginal, color=tier))+
-  geom_abline(slope=1, intercept=0)+
-  #ggtitle("New bonds cover marginal and inactive well plugging liability")+
-  scale_y_continuous(labels = dollar)+
-  ylab("Total Plugging Liabilities for Fee/State Marginal/Inactive Wells")+
-  scale_x_continuous(label=dollar)+
-  xlab("Required Bonds")+
-  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs $6 per foot to plug.")+
-  theme_bw()
-ggsave(filename="UtahDNRAnalytics/Figures/FeeStateMarginalLiability3.jpg",
-       device="jpg",
-       height=5,
-       width=7)
-
-
-ggplot(data=operator_stats%>%filter(bond<10000000))+
-  geom_point(aes(x=bond, y=liability4_feestate_marginal, color=tier))+
-  geom_abline(slope=1, intercept=0)+
-  #ggtitle("New bonds cover marginal and inactive well plugging liability")+
-  scale_y_continuous(labels = dollar)+
-  ylab("Total Plugging Liabilities for Fee/State Marginal/Inactive Wells")+
-  scale_x_continuous(label=dollar)+
-  xlab("Required Bonds")+
-  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs $12 per foot to plug.")+
-  theme_bw()
-ggsave(filename="UtahDNRAnalytics/Figures/FeeStateMarginalLiability4.jpg",
-       device="jpg",
-       height=5,
-       width=7)
 
 ########################
 ## Difference between UPA and DOGM
@@ -743,32 +476,22 @@ ggsave(filename="UtahDNRAnalytics/Figures/FeeStateMarginalLiability4_UPA.jpg",
 small_risky_operators = operator_stats%>%
   filter(tot_BOE<1000000)
 
-write.table(t(c("Small operators (tot_BOE<1000000) N Wells:", sum(small_risky_operators$tot_operator_wells))), file=paste(code_dir, "/descriptive_facts.csv", sep=""), sep=",", row.names=F, append=T, col.names = F)
-write.table(t(c("Small operators (tot_BOE<1000000) State Well PCT:", sum(small_risky_operators$tot_operator_wells)/sum(operator_stats$tot_operator_wells))), file=paste(code_dir, "/descriptive_facts.csv", sep=""), sep=",", row.names=F, append=T, col.names = F)
+print(paste("Small operators hold ", sum(small_risky_operators$tot_operator_wells), "wells and", sum(small_risky_operators$tot_operator_wells)/sum(operator_stats$tot_operator_wells), "percent of the state's total wells"))
+print(paste("Small operators hold", sum(small_risky_operators$tot_inactive,na.rm=T), "inactive wells and", sum(small_risky_operators$tot_inactive,na.rm=T)/sum(operator_stats$tot_inactive, na.rm=T), "percent of the state's inactive wells"))
 
-write.table(t(c("Small operators (tot_BOE<1000000) N Inactive Wells:", sum(small_risky_operators$tot_inactive,na.rm=T))), file=paste(code_dir, "/descriptive_facts.csv", sep=""), sep=",", row.names=F, append=T, col.names = F)
-write.table(t(c("Small operators (tot_BOE<1000000) State Well Inactive PCT:", sum(small_risky_operators$tot_inactive,na.rm=T)/sum(operator_stats$tot_inactive, na.rm=T))), file=paste(code_dir, "/descriptive_facts.csv", sep=""), sep=",", row.names=F, append=T, col.names = F)
+print(paste("Inactive wells held by these firms could cost ", sum(small_risky_operators$liability1), "dollars to plug"))
+print(paste("Inactive wells held by these firms could cost ", sum(small_risky_operators$liability2), "dollars to plug"))
+print(paste("Inactive wells held by these firms could cost ", sum(small_risky_operators$liability3), "dollars to plug"))
+print(paste("Inactive wells held by these firms could cost ", sum(small_risky_operators$liability4), "dollars to plug"))
 
-sum_small_risky = small_risky_operators%>%
-  summarise(liability1 = sum(liability1,na.rm=T),
-            liability2 = sum(liability2,na.rm=T),
-            liability3 = sum(liability3,na.rm=T),
-            liability4 = sum(liability4,na.rm=T))
-
-sum_small_risky=cbind("Sum of liability from small operators", sum_small_risky)
-
-write.table(c("", "", "", "Sum of liabilities"), file=paste(code_dir, "/descriptive_facts.csv", sep=""), sep=",", row.names=F, append=T, col.names = F)
-write.table(sum_small_risky, file=paste(code_dir, "/descriptive_facts.csv", sep=""), sep=",", row.names=F, append=T, col.names = T)
+small_risky1 = small_risky_operators%>%
+  filter(bond<liability1_marginal)
+print(paste("There are ", nrow(small_risky1), "firms which produce less than 1000000 BOE/yr whose plugging liabilities for marginal/inactive wells exceed bond amounts if plug costs are low (37500 per well)."))
 
 
-small_risky_underbonded = small_risky_operators%>%
-  filter(bond<liability2_marginal)%>%
-  summarise(n_firms=n(),
-            sum_bonds = sum(bond,na.rm=T),
-            sum_liability = sum(liability2_marginal))
-
-write.table(c("", "", "", "Small firms where marginal well liabilities exceed bonds (assuming $75k per well)"), file=paste(code_dir, "/descriptive_facts.csv", sep=""), sep=",", row.names=F, append=T, col.names = F)
-write.table(small_risky_underbonded, file=paste(code_dir, "/descriptive_facts.csv", sep=""), sep=",", row.names=F, append=T, col.names = T)
-
+small_risky2 = small_risky_operators%>%
+  filter(bond<liability2_marginal)
+print(paste("There are ", nrow(small_risky2), "firms which produce less than 1000000 BOE/yr whose plugging liabilities for marginal/inactive wells exceed bond amounts if plug costs are high (75000 per well)."))
+print(paste("For these firms marginal/inactive plugging liabilities exceed collected bonds by", sum(small_risky2$liability2_marginal)-sum(small_risky2$bond), "if plugging costs are high (75000)"))
 write.csv(operator_stats%>%select(Operator, tot_operator_wells, avg_depth, avg_marginal_depth, tot_feestate_wells, tot_inactive, BOEperday, tier,UPAtier, bond,UPAbond, tot_inactive_feestate, starts_with("liability")), "UtahDNRAnalytics/Operator_dat.csv")
 
