@@ -8,7 +8,8 @@ To do this, it calculates the bonding amounts by firm and the potential plugging
 The main file is CategorizeFirms.R, which contains all of the script to categorize firms, calculate bonds, and produce the charts from the presentation.
 It calls a helper file called bond_funs.R which simply holds functions which spit out the blanket and marginal bond amounts based on the number of wells and depth.
 
-To reproduce the charts, simply clone this repository onto your machine and download and unzip Production2020To2024.csv, WellHistory.csv, and Wells.csv from https://oilgas.ogm.utah.gov/pub/Database/Production2020To2024.zip
+To reproduce the charts, simply clone this repository onto your machine and download and unzip Production2020To2024.csv, WellHistory.csv, and Wells.csv from [https://oilgas.ogm.utah.gov/pub/Database/Production2020To2024.zip]
+(https://oilgas.ogm.utah.gov/oilgasweb/data-center/dc-main.xhtml#download)
 into the same folder as the repo.
 
 ## Bond Calculation
