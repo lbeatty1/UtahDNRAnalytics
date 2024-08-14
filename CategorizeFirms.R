@@ -38,8 +38,8 @@ library(data.table)
 #######################################
 
 # Set directories to reflect Christine's setup
-setwd("C:/Users/cgerbode/Modeling/gitrepo/")
-data_dir = 'UtahDNRAnalytics/UTData/'
+setwd("C:/Users/lbeatty/Documents/")
+data_dir = 'UtahData/'
 code_dir = 'UtahDNRAnalytics/'
 
 # Connect to supplementary functions file 'bond_funs.R'
@@ -80,7 +80,6 @@ wells = wells%>%
   mutate(API=format(API, scientific=F),
          API10=substr(API, 1, 10),
          AbandonDate=as.Date(AbandonDate,"%Y-%m-%d"))
-#*********** CG note - This^ section was originally commented as "filter out abandoned wells"; that happens in lines
 
 # Export summary numbers to descriptive_facts.csv
 write.table(t(c("Updated number of unique operators in well data:", length(unique(wells$OperatorNo)))), file=paste(code_dir, "/descriptive_facts.csv", sep=""), sep=",", row.names=F, append=T, col.names = F)
@@ -152,7 +151,6 @@ past_12_prod = prod_data%>%
             Water=sum(Water),
             n_reports=n())
 
-##************FATAL ERROR CHARSXP MAY OCCUR DURING SECTION BELOW
 # Find producing/shut-in status as of 12-2023
 status_122023 = prod_data%>%
   dplyr::filter(ReportPeriod=="2023-12-01")%>%
@@ -181,8 +179,6 @@ past_12_prod = past_12_prod%>%
 
 # Join finalized status columns to dataset
 well_data=left_join(wells, past_12_prod, by=c("API10"="API"))
-
-##**********FATAL ERROR (Error: Cannot have attributes on a CHARSXP) sometimes, but not always, occurs somewhere in section above
 
 ######################################
 ## Filter out already-plugged wells ##
@@ -299,7 +295,7 @@ well_class_breakout = well_data%>%
   summarise(n=n())
 
 #print table to .csv
-write.table(c("", "", "", "Overview of Well Flag Classifications and Counts"), file=paste(code_dir, "/bond_sufficiency_stats.csv", sep=""), sep=",", row.names=F, append=T, col.names = F)
+write.table(c("", "", "", "Overview of Well Flag Classifications and Counts"), file=paste(code_dir, "/bond_sufficiency_stats.csv", sep=""), sep=",", row.names=F, append=F, col.names = F)
 write.table(well_class_breakout, file=paste(code_dir, "/well_classifications.csv", sep=""), sep=",", row.names=F, append=T, col.names = T)
 
 ########################
