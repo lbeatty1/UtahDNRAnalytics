@@ -12,6 +12,10 @@
 # 1501 - 2000
 # 2001 - 2500
 
+get_bin = function(x, bin_def){
+  return(bin=cut(x,bin_def, labels=FALSE, include.lowest = TRUE))
+}
+
 tier1_blanket = function(n){
   if(n==0){return(0)}
   if(n>=1&n<=10){return(200000)}
