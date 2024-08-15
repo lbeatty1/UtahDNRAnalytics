@@ -785,7 +785,7 @@ ggsave(filename="UtahDNRAnalytics/Figures/FeeState_PCT_Bar.jpg",
 
 ggplot(suff_stats_total)+
   geom_col(aes(tier,liability5_feestate_atrisk_pct), fill='darkblue')+
-  ylab("Percent of Fee/State Liabilities Covered")+
+  ylab("Percent of Fee/State At-Risk Liabilities Covered")+
   xlab("Tier")+
   theme_bw()
 ggsave(filename="UtahDNRAnalytics/Figures/FeeState_Atrisk_PCT_Bar.jpg",
