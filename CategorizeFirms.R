@@ -458,7 +458,7 @@ ggplot(data=operator_stats%>%filter(bond<10000000))+
   ylab("Total Plugging Liabilities for At-Risk Wells")+
   scale_x_continuous(label=dollar)+
   xlab("Required Bonds")+
-  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs 75000 to plug.")+
+  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs $75,000 to plug.")+
   theme_bw()
 ggsave(filename="UtahDNRAnalytics/Figures/AtRiskLiabilities2.jpg",
        device="jpg",
@@ -542,7 +542,7 @@ ggplot(data=operator_stats%>%filter(bond<10000000))+
   ylab("Total Plugging Liabilities for Fee/State Wells")+
   scale_x_continuous(label=dollar)+
   xlab("Required Bonds")+
-  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs 75000 to plug.")+
+  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs $75,000 to plug.")+
   theme_bw()
 
 ggsave(filename="UtahDNRAnalytics/Figures/FeeStateLiability2.jpg",
@@ -633,7 +633,7 @@ ggplot(data=operator_stats%>%filter(bond<10000000))+
   ylab("Total Plugging Liabilities for Fee/State At-Risk Wells")+
   scale_x_continuous(label=dollar)+
   xlab("Required Bonds")+
-  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs 75000 to plug.")+
+  labs(caption="Plot of firm-level total estimated plugging liabilities against required bonds. \n A line is plotted at y=x. Plugging costs assume each well costs $75,000 to plug.")+
   theme_bw()
 ggsave(filename="UtahDNRAnalytics/Figures/FeeStateAtRiskLiability2.jpg",
        device="jpg",
@@ -694,13 +694,13 @@ ggsave(filename="UtahDNRAnalytics/Figures/FeeStateAtRiskLiability5.jpg",
 ###################################################################
 
 operator_stats = operator_stats%>%
-  mutate(liability5_pct = bond/liability5,
-         liability5fs_pct = bond/liability5_feestate,
-         liability5ar_pct = bond/liability5_atrisk,
-         liability5arfs_pct = bond/liability5_feestate_atrisk)
+  mutate(liability2_pct = bond/liability2,
+         liability2fc_pct = bond/liability2_feestate,
+         liability2ar_pct = bond/liability2_atrisk,
+         liability2arfs_pct = bond/liability2_feestate_atrisk)
 
 ggplot(operator_stats)+
-  geom_density(aes(x=liability5arfs_pct, fill=tier), alpha=0.4)+
+  geom_density(aes(x=liability2arfs_pct, fill=tier), alpha=0.4)+
   xlim(0,3)+
   xlab("Percent of Fee/State At-Risk Liabilities Covered")+
   theme_bw()
@@ -710,7 +710,7 @@ ggsave(filename="UtahDNRAnalytics/Figures/FeeStateAtRisk_PCT_Density.jpg",
        width=7)
 
 ggplot(operator_stats)+
-  geom_density(aes(x=liability5fs_pct, fill=tier), alpha=0.4)+
+  geom_density(aes(x=liability2fc_pct, fill=tier), alpha=0.4)+
   xlim(0,2)+
   xlab("Percent of Fee/State Liabilities Covered")+
   theme_bw()
@@ -722,21 +722,22 @@ ggsave(filename="UtahDNRAnalytics/Figures/FeeState_PCT_Density.jpg",
 
 suff_stats_total = operator_stats%>%
   group_by(tier)%>%
-  summarise(sum_liability5=sum(liability5,na.rm=T),
-            sum_liability5_feestate=sum(liability5_feestate,na.rm=T),
-            sum_liability5_atrisk = sum(liability5_atrisk,na.rm=T),
-            sum_liability5_feestate_atrisk = sum(liability5_feestate_atrisk, na.rm=T),
+  summarise(sum_liability2=sum(liability2,na.rm=T),
+            sum_liability2_feestate=sum(liability2_feestate,na.rm=T),
+            sum_liability2_atrisk = sum(liability2_atrisk,na.rm=T),
+            sum_liability2_feestate_atrisk = sum(liability2_feestate_atrisk, na.rm=T),
             sum_bonds = sum(bond,na.rm=T))%>%
-  mutate(liability5_pct = sum_bonds/sum_liability5,
-         liability5_feestate_pct = sum_bonds/sum_liability5_feestate,
-         liability5_atrisk_pct = sum_bonds/sum_liability5_atrisk,
-         liability5_feestate_atrisk_pct = sum_bonds/sum_liability5_feestate_atrisk)
+  mutate(liability2_pct = sum_bonds/sum_liability2,
+         liability2_feestate_pct = sum_bonds/sum_liability2_feestate,
+         liability2_atrisk_pct = sum_bonds/sum_liability2_atrisk,
+         liability2_feestate_atrisk_pct = sum_bonds/sum_liability2_feestate_atrisk)
 
 
 ggplot(suff_stats_total)+
-  geom_col(aes(tier,liability5_feestate_pct), fill='darkblue')+
-  ylab("Percent of Fee/State Liabilities Covered")+
+  geom_col(aes(tier,liability2_feestate_pct), fill='darkblue')+
+  ylab("Mean Percent of Fee/State Liabilities Covered")+
   xlab("Tier")+
+  labs(caption="Costs are calculated assuming each well costs $75,000 to plug")+
   theme_bw()
 ggsave(filename="UtahDNRAnalytics/Figures/FeeState_PCT_Bar.jpg",
        device="jpg",
@@ -744,8 +745,9 @@ ggsave(filename="UtahDNRAnalytics/Figures/FeeState_PCT_Bar.jpg",
        width=7)
 
 ggplot(suff_stats_total)+
-  geom_col(aes(tier,liability5_feestate_atrisk_pct), fill='darkblue')+
+  geom_col(aes(tier,liability2_feestate_atrisk_pct), fill='darkblue')+
   ylab("Percent of Fee/State At-Risk Liabilities Covered")+
+  labs(caption="Costs are calculated assuming each well costs $75,000 to plug")+
   xlab("Tier")+
   theme_bw()
 ggsave(filename="UtahDNRAnalytics/Figures/FeeState_Atrisk_PCT_Bar.jpg",
@@ -775,7 +777,7 @@ sum_small_risky = small_risky_operators%>%
             liability2 = sum(liability2,na.rm=T),
             liability3 = sum(liability3,na.rm=T),
             liability4 = sum(liability4,na.rm=T),
-            liability5 = sum(liability5,na.rm=T))
+            liability2 = sum(liability2,na.rm=T))
 
 sum_small_risky=cbind("Sum of liability from small operators", sum_small_risky)
 
@@ -784,7 +786,7 @@ write.table(sum_small_risky, file=paste(code_dir, "/descriptive_facts.csv", sep=
 
 
 small_risky_underbonded = small_risky_operators%>%
-  filter(bond<liability5_atrisk)%>%
+  filter(bond<liability2_atrisk)%>%
   summarise(n_firms=n(),
             sum_bonds = sum(bond,na.rm=T),
             sum_liability = sum(liability2_atrisk))
@@ -793,4 +795,5 @@ write.table(c("", "", "", "Small firms where marginal well liabilities exceed bo
 write.table(small_risky_underbonded, file=paste(code_dir, "/descriptive_facts.csv", sep=""), sep=",", row.names=F, append=T, col.names = T)
 
 write.csv(operator_stats%>%select(Operator, tot_operator_wells, avg_depth, avg_atrisk_depth, tot_feestate_wells, tot_atrisk, tot_atrisk_feestate, BOEperday, tier, bond, tot_atrisk_feestate, starts_with("liability")), "UtahDNRAnalytics/Operator_dat.csv")
+
 
