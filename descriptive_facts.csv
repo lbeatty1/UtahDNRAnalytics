@@ -1,46 +1,46 @@
 ""
-"Number of unique operators in production data:","135"
-"Number of unique wells in production data: ","14715"
-"Number of unique operators in well data:","1636"
-"Number of unique wells in well data: ","38903"
-"Updated number of unique operators in well data:","1636"
-"Updated number of unique wells in well data: ","38903"
+"Number of unique operators in production data:","142"
+"Number of unique wells in production data: ","14941"
+"Number of unique operators in well data:","1638"
+"Number of unique wells in well data: ","39300"
+"Updated number of unique operators in well data:","1638"
+"Updated number of unique wells in well data: ","39300"
 ""
 ""
 ""
 "Overview of Well Flag Classifications and Counts"
 "fee_state_flag","shutin_flag","producing_flag","active_flag","atrisk_flag","n"
-FALSE,0,FALSE,FALSE,1,355
-FALSE,0,FALSE,TRUE,0,930
-FALSE,0,TRUE,TRUE,0,9300
-FALSE,0,TRUE,TRUE,1,1
-FALSE,1,FALSE,FALSE,1,2805
-TRUE,0,FALSE,FALSE,1,122
-TRUE,0,FALSE,TRUE,0,167
-TRUE,0,TRUE,TRUE,0,3575
-TRUE,1,FALSE,FALSE,1,460
+FALSE,FALSE,FALSE,FALSE,1,679
+FALSE,FALSE,FALSE,TRUE,0,1012
+FALSE,FALSE,TRUE,TRUE,0,8499
+FALSE,FALSE,TRUE,TRUE,1,1
+FALSE,TRUE,FALSE,FALSE,1,1991
+TRUE,FALSE,FALSE,FALSE,1,216
+TRUE,FALSE,FALSE,TRUE,0,180
+TRUE,FALSE,TRUE,TRUE,0,3334
+TRUE,TRUE,FALSE,FALSE,1,182
 ""
 ""
 ""
 "Average % of liability covered by bond, by Tier Group"
 "tier","sum_liability5","sum_liability5_feestate","sum_liability5_atrisk","sum_liability5_feestate_atrisk","sum_bonds","liability5_pct","liability5_feestate_pct","liability5_atrisk_pct","liability5_feestate_atrisk_pct"
-"1",770124341.502583,239100904.557774,86587668.9067637,17262875.7139502,16590000,0.0215419758939594,0.0693849319837742,0.191597720662325,0.961021806267975
-"2",162891942.681306,27202351.8339596,28936245.3903241,3034857.81939878,6018750,0.0369493413911549,0.22125844253239,0.208000378722686,1.9832065810557
-"3",157996090.995303,17034760.6085016,67341107.441287,4803222.5636449,7360000,0.0465834309800665,0.432057730023326,0.109294311894366,1.53230459394222
-"No tier",69255802.3104744,25599758.6751996,41594030.4631282,16319771.9915453,17315000,0.250015152844186,0.6763735635045,0.416285697904395,1.06098296036061
-"Small operators (tot_BOE<1000000) N Wells:","1600"
-"Small operators (tot_BOE<1000000) State Well PCT:","0.0959750464879131"
-"Small operators (tot_BOE<1000000) N At-Risk Wells:","691"
-"Small operators (tot_BOE<1000000) State Well Inactive PCT:","0.20222417325139"
+"1",648182154.494757,216940567.62612,57165028.4676835,9823514.41487131,12325000,0.0190147166418166,0.0568127950196994,0.215603846099151,1.25464263393779
+"2",151531178.637941,20596737.6594852,23139221.4148713,1331946,3573750,0.0235842552808151,0.173510487878366,0.154445559594464,2.68310426999293
+"3",171016311.808198,18741411,59087478.6594852,3121686,5575000,0.0325992295182496,0.29746959820688,0.0943516312843221,1.78589390476813
+"No tier",36572001.0097235,16867831.1056244,21778789.1056244,10375241.8610105,13985000,0.382396358249081,0.82909295880588,0.642138547380871,1.34792038463747
+"Small operators (tot_BOE<1000000) N Wells:","1267"
+"Small operators (tot_BOE<1000000) State Well PCT:","0.084800214175758"
+"Small operators (tot_BOE<1000000) N At-Risk Wells:","1187"
+"Small operators (tot_BOE<1000000) State Well Inactive PCT:","0.0798734943812664"
 ""
 ""
 ""
 "Sum of liabilities"
 "\"Sum of liability from small operators\"","liability1","liability2","liability3","liability4","liability5"
-"Sum of liability from small operators",6e+07,1.2e+08,69436535.6195397,138873071.239079,104154803.42931
+"Sum of liability from small operators",47512500,95025000,47459073.0840801,94918146.1681602,71188609.6261201
 ""
 ""
 ""
 "Small firms where marginal well liabilities exceed bonds (assuming $9/foot)"
 "n_firms","sum_bonds","sum_liability"
-33,11532500,47475000
+23,7445000,30450000
