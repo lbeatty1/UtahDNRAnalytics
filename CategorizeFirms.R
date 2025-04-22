@@ -735,7 +735,7 @@ suff_stats_total = operator_stats%>%
 
 ggplot(suff_stats_total)+
   geom_col(aes(tier,liability2_feestate_pct), fill='darkblue')+
-  ylab("Mean Percent of Fee/State Liabilities Covered")+
+  ylab("Mean Proportion of Fee/State Liabilities Covered")+
   xlab("Tier")+
   labs(caption="Costs are calculated assuming each well costs $75,000 to plug")+
   theme_bw()
@@ -746,7 +746,7 @@ ggsave(filename="UtahDNRAnalytics/Figures/FeeState_PCT_Bar.jpg",
 
 ggplot(suff_stats_total)+
   geom_col(aes(tier,liability2_feestate_atrisk_pct), fill='darkblue')+
-  ylab("Percent of Fee/State At-Risk Liabilities Covered")+
+  ylab("Mean Proportion of Fee/State At-Risk Liabilities Covered")+
   labs(caption="Costs are calculated assuming each well costs $75,000 to plug")+
   xlab("Tier")+
   theme_bw()

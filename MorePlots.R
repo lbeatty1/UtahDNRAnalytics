@@ -81,25 +81,26 @@ wells = wells[!wellstatus%in%c('APD', 'LA', 'DRL', 'RET')]
 
 
 prod_data[,year:=year(ReportPeriod)]
-wells[,FirstProdYear:=year(FirstProdDate)]
+wells[,SpudYear:=year(SpudDate)]
 wellcounts = wells[,.(
   avg_depth  = mean(depth, na.rm=T),
   n=.N
-), by=FirstProdYear]
+), by=SpudYear]
 
-ggplot(wellcounts[FirstProdYear>2000&FirstProdYear<=2024])+
-  geom_line(aes(x=FirstProdYear, y=n))+
+ggplot(wellcounts[SpudYear>2000&SpudYear<=2024])+
+  geom_line(aes(x=SpudYear, y=n))+
   xlab('Year')+
-  ylab('Number of New Wells')+
+  ylab('Number of Well Spuds')+
   theme_bw()
 ggsave(filename = paste0(code_dir, 'Figures/NewWellsTimeseries.jpg'),
        width=6,
        height=4)
 
-ggplot(wellcounts[FirstProdYear>2000&FirstProdYear<=2024])+
-  geom_line(aes(x=FirstProdYear, y=avg_depth))+
-  xlab('Year')+
-  ylab('Mean Depth of New Wells')+
+ggplot(wellcounts[SpudYear>2000&SpudYear<=2024])+
+  geom_line(aes(x=SpudYear, y=avg_depth))+
+  xlab('Spud Year')+
+  ylab('Mean TVD of New Wells')+
+  scale_y_continuous(labels=comma)+
   theme_bw()
 
 ggsave(filename = paste0(code_dir, 'Figures/NewWellsDepth.jpg'),
@@ -114,7 +115,7 @@ prod_timeseries = prod_data[,.(
 ggplot(prod_timeseries[year>=2000&year<=2024])+
   geom_line(aes(x=year, y=Gas/1e6))+
   xlab('Year')+
-  ylab('mMCF')+
+  ylab('mMCF/Year')+
   theme_minimal()
 ggsave(filename = paste0(code_dir, 'Figures/GasProduction.jpg'),
        width=6,
@@ -123,7 +124,7 @@ ggsave(filename = paste0(code_dir, 'Figures/GasProduction.jpg'),
 ggplot(prod_timeseries[year>=2000&year<=2024])+
   geom_line(aes(x=year, y=Oil/1e6))+
   xlab('Year')+
-  ylab('mBBL')+
+  ylab('mBBL/Year')+
   theme_minimal()
 ggsave(filename = paste0(code_dir, 'Figures/OilProduction.jpg'),
        width=6,
@@ -201,21 +202,21 @@ base_theme <- theme_minimal() +
 plot_total <- ggplot(prod_timeseries_total[year(date) >= 2000 & year(date) <= 2024]) +
   geom_area(aes(x = date, y = Oil / 1e6)) +
   ylim(0, max(prod_timeseries_total$Oil / 1e6)) +
-  xlab("Year") +
-  ylab("mBBL") +
+  xlab("Date") +
+  ylab("mBBL/month") +
   base_theme
 
 # Plot 2: Oil production by vintage
 plot_vintage <- ggplot(prod_timeseries[year(date) >= 2000 & year(date) <= 2024 & !is.na(vintage)]) +
   geom_area(aes(x = date, y = Oil / 1e6, fill = vintage, group = vintage)) +
   ylim(0, max(prod_timeseries_total$Oil / 1e6)) +  # Keep axis identical
-  xlab("Year") +
-  ylab("mBBL") +
+  xlab("Date") +
+  ylab("mBBL/month") +
   scale_fill_edf(name = "Well Vintage") +
   base_theme
 
 ggsave(paste0(code_dir, "Figures/OilProduction.jpg"), plot_total, width = 6, height = 4, dpi = 300)
-ggsave(paste0(code_dir, "Figures/OilProduction_vintage.jpg"), plot_vintage, width = 7.25, height = 4, dpi = 300)
+ggsave(paste0(code_dir, "Figures/OilProduction_vintage.jpg"), plot_vintage, width = 7.23, height = 4, dpi = 300)
 
 
 ############
@@ -235,6 +236,7 @@ plot_total <- ggplot(prod_timeseries_total[date >= '2000-01-01' & year(date)<=20
   labs(color = "") +
   xlab("Year") +
   ylab("Number of Wells")+
+  scale_y_continuous(labels = comma) +
   base_theme
 
 # Plot 2: Oil production by vintage
@@ -243,12 +245,13 @@ plot_vintage <- ggplot(prod_timeseries[year(date) >= 2000 & year(date) <= 2024 &
   ylim(0, max(prod_timeseries_total$n)) +  # Keep axis identical
   xlab("Year") +
   ylab("Number of Wells") +
+  scale_y_continuous(labels = comma) +
   scale_fill_edf(name = "Well Vintage") +
   base_theme
 
 
 ggsave(paste0(code_dir, "Figures/N_wells.jpg"), plot_total, width = 6, height = 4, dpi = 300)
 
-ggsave(paste0(code_dir, "Figures/N_wells_vinage.jpg"), plot_vintage, width = 7.25, height = 4, dpi = 300)
+ggsave(paste0(code_dir, "Figures/N_wells_vinage.jpg"), plot_vintage, width = 7.23, height = 4, dpi = 300)
 
 
