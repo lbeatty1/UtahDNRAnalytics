@@ -1,0 +1,85 @@
+\documentclass{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage{csquotes}
+\usepackage{latexsym,amsmath,xcolor,multicol,booktabs,calligra, animate, subfig}
+\usepackage{graphicx,pstricks,listings,stackengine, bbm}
+\usepackage{tikz}
+\usetikzlibrary{fit,tikzmark}   
+\usepackage{booktabs,cellspace}
+\usepackage{color, colortbl}
+\usepackage{hyperref}
+\usepackage{color}
+%Information to be included in the title page:
+\title{Analysis of Utah's Proposed Regulation}
+\author{Lauren Beatty\\ \href{mailto:lbeatty@edf.org}{lbeatty@edf.org}}
+\institute{Environmental Defense Fund}
+\date{April 23, 2025}
+\logo{\includegraphics[height=.5cm]{EDF_color_webRGB_2022 (2).png}\hspace*{.03\paperwidth}\vspace{.01\paperwidth}}
+\newcommand{\nologo}{\setbeamertemplate{logo}{}}
+
+
+%Color Pallete
+\definecolor{EDFblue}{RGB}{0.0, 51, 204}
+\definecolor{EDFgreen}{RGB}{0, 153, 51} 
+\definecolor{EDFlightgreen}{RGB}{161, 226, 20}
+\definecolor{EDFcyan}{RGB}{51,204,255}
+\setbeamercolor{structure}{fg=EDFblue} 
+\setbeamercolor{button}{bg=EDFblue,fg=white}
+\setbeamertemplate{navigation symbols}{}
+
+\hypersetup{colorlinks,linkcolor=EDFblue,urlcolor=EDFblue}
+
+
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}{Utah's wells are getting deeper and more expensive to plug}
+
+\includegraphics[width=\textwidth]{Figures/NewWellsDepth.jpg}
+    
+\end{frame}
+
+
+\begin{frame}{Well drilling peaked over a decade ago}
+
+\includegraphics[width=\textwidth]{Figures/NewWellsTimeseries.jpg}
+    
+\end{frame}
+
+\begin{frame}{Utah's well population is aging}
+
+\includegraphics[width=\textwidth]{Figures/N_wells_vinage.jpg}
+    
+\end{frame}
+
+\begin{frame}{Production is hitting record highs}
+    \includegraphics[height=6.5cm]{Figures/OilProduction.jpg}
+\end{frame}
+
+\begin{frame}{Production is hitting record highs}
+    \includegraphics[height=6.5cm]{Figures/OilProduction_vintage.jpg}
+\end{frame}
+
+\begin{frame}{}
+    \begin{itemize}
+        \item Over the past decade, new wells have become increasingly deep.
+        \item The current population of wells is aging. Over half of existing, unplugged wells are over 15 years old.
+        \item This subpopulation of wells produce only INSERT of the state's production.
+        \item Record production levels mean that there may never be a better time to ensure that legacy wells are properly decomissioned. 
+    \end{itemize}
+\end{frame}
+
+{\nologo
+\begin{frame}{New financial assurance amounts are proportionate to risk}
+    \includegraphics[width=\textwidth]{Figures/FeeStateLiability2.jpg}
+\end{frame}
+
+\begin{frame}{New financial assurance amounts are proportionate to risk}
+    \includegraphics[width=\textwidth]{Figures/FeeState_PCT_Bar.jpg}
+\end{frame}
+}
+
+
+\end{document}
