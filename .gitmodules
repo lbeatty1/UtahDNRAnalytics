@@ -1,0 +1,3 @@
+[submodule "northamerica_og_templates"]
+	path = northamerica_og_templates
+	url = https://github.com/edf-org/northamerica_og_templates.git
