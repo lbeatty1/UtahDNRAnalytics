@@ -40,7 +40,7 @@ tier1_marginalbond = function(d){
   if(d>=3001&d<=6000){return(20000)}
   if(d>=6001&d<=9000){return(32500)}
   if(d>=9001&d<=12000){return(42500)}
-  if(d>=12000){return(55000)}
+  if(d>12000){return(55000)}
 }
 
 tier2_blanket = function(n){
@@ -179,7 +179,7 @@ tier3_marginalbond_old = function(d){
   if(d>=3001&d<=6000){return(40000)}
   if(d>=6001&d<=9000){return(65000)}
   if(d>=9001&d<=12000){return(85000)}
-  if(d>=12000){return(110000)}
+  if(d>12000){return(110000)}
 }
 #######################
 
