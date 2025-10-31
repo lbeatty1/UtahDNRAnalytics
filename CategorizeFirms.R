@@ -280,7 +280,7 @@ atrisk_operator_dat = well_data[,.(n_wells=.N), by=.(Operator, atrisk_flag)]
 atrisk_operator_dat[,tot_wells:=sum(n_wells), by=Operator]
 atrisk_operator_dat[, pct_atrisk:=n_wells/tot_wells]
 atrisk_operator_dat = atrisk_operator_dat[atrisk_flag==1]
-atrisk_operator_dat[,c('atrisk_flag', 'n_wells'):=NULL]
+atrisk_operator_dat[,c('atrisk_flag', 'tot_wells'):=NULL]
 names(atrisk_operator_dat) = c('Operator', 'tot_atrisk', 'pct_atrisk')
 operator_stats = merge(operator_stats, atrisk_operator_dat, by="Operator", all.x=T)
 
@@ -330,11 +330,11 @@ operator_stats[is.na(tot_feestate_wells), tot_feestate_wells:=0]
 ## Calculate new blanket bonds (functions in bonds_funs.R; updated to reflect July 2024 draft schedule)
 operator_stats[, `:=`(
   tier1blanket  = sapply(tot_feestate_wells, tier1_blanket),
-  tier1marginal = sapply(avg_atrisk_depth, tier1_marginalbond) * (tot_atrisk_feestate/10)*10,  #change here they round down to nearest 10
+  tier1marginal = sapply(avg_atrisk_depth, tier1_marginalbond) * floor(tot_atrisk_feestate/10)*10,  #change here they round down to nearest 10
   tier2blanket  = sapply(tot_feestate_wells, tier2_blanket),
-  tier2marginal = sapply(avg_atrisk_depth, tier2_marginalbond) * (tot_atrisk_feestate/10)*10,
+  tier2marginal = sapply(avg_atrisk_depth, tier2_marginalbond) * floor(tot_atrisk_feestate/10)*10,
   tier3blanket  = sapply(tot_feestate_wells, tier3_blanket),
-  tier3marginal = sapply(avg_atrisk_depth, tier3_marginalbond) * (tot_atrisk_feestate/10)*10
+  tier3marginal = sapply(avg_atrisk_depth, tier3_marginalbond) * floor(tot_atrisk_feestate/10)*10
 )]
 
 ## Calculate Individual Well Depth bonds
@@ -356,12 +356,13 @@ operator_stats[, `:=`(
   tier1marginal = fifelse(is.na(tier1marginal), 0, tier1marginal),
   tier2marginal = fifelse(is.na(tier2marginal), 0, tier2marginal),
   tier3marginal = fifelse(is.na(tier3marginal), 0, tier3marginal),
-  individual_well_bond = fifelse(is.na(individual_well_bond), 0, individual_well_bond),
-  bond = (tier1blanket + tier1marginal) * (tier == 1) +
-    (tier2blanket + tier2marginal) * (tier == 2) +
-    (tier3blanket + tier3marginal) * (tier == 3) +
-    individual_well_bond * (tier == 4)
+  individual_well_bond = fifelse(is.na(individual_well_bond), 0, individual_well_bond)
 )]
+
+operator_stats[,bond := (tier1blanket + tier1marginal) * (tier == 1) +
+                 (tier2blanket + tier2marginal) * (tier == 2) +
+                 (tier3blanket + tier3marginal) * (tier == 3) +
+                 individual_well_bond * (tier == 4)]
 
 # Filter out operators with no fee/state wells
 operator_stats <- operator_stats[tot_feestate_wells > 0]
@@ -429,6 +430,11 @@ operator_liabilities_feestate_atrisk = well_data%>%
             liability5_feestate_atrisk=sum(liability5))
 operator_stats = left_join(operator_stats, operator_liabilities_feestate_atrisk, by="Operator")
 
+
+#clear out some defunct operators
+operator_stats = operator_stats%>%
+  filter(!Operator%in%c('Orphan-No Responsible Operator',
+                        'Weststar Exploration Co'))
 ########################################################
 ## Compare & plot bonds against projected liabilities ##
 ########################################################
@@ -794,6 +800,7 @@ small_risky_underbonded = small_risky_operators%>%
 write.table(c("", "", "", "Small firms where marginal well liabilities exceed bonds (assuming $9/foot)"), file=paste(code_dir, "/descriptive_facts.csv", sep=""), sep=",", row.names=F, append=T, col.names = F)
 write.table(small_risky_underbonded, file=paste(code_dir, "/descriptive_facts.csv", sep=""), sep=",", row.names=F, append=T, col.names = T)
 
-write.csv(operator_stats%>%select(Operator, tot_operator_wells, avg_depth, avg_atrisk_depth, tot_feestate_wells, tot_atrisk, tot_atrisk_feestate, BOEperday, tier, bond, tot_atrisk_feestate, starts_with("liability")), "UtahDNRAnalytics/Operator_dat.csv")
+
+write.csv(operator_stats%>%select(Operator, tot_operator_wells, avg_depth, avg_atrisk_depth, tot_feestate_wells, tot_atrisk, tot_atrisk_feestate, BOEperday, tier, bond, tier1marginal, tier2marginal, tier3marginal, individual_well_bond), "UtahDNRAnalytics/Operator_dat.csv")
 
 

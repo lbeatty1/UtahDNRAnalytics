@@ -1,46 +1,7 @@
 ""
-"Number of unique operators in production data:","142"
-"Number of unique wells in production data: ","14941"
+"Number of unique operators in production data:","184"
+"Number of unique wells in production data: ","15154"
 "Number of unique operators in well data:","1638"
 "Number of unique wells in well data: ","39300"
 "Updated number of unique operators in well data:","1638"
 "Updated number of unique wells in well data: ","39300"
-""
-""
-""
-"Overview of Well Flag Classifications and Counts"
-"fee_state_flag","shutin_flag","producing_flag","active_flag","atrisk_flag","n"
-FALSE,FALSE,FALSE,FALSE,1,679
-FALSE,FALSE,FALSE,TRUE,0,1012
-FALSE,FALSE,TRUE,TRUE,0,8499
-FALSE,FALSE,TRUE,TRUE,1,1
-FALSE,TRUE,FALSE,FALSE,1,1991
-TRUE,FALSE,FALSE,FALSE,1,216
-TRUE,FALSE,FALSE,TRUE,0,180
-TRUE,FALSE,TRUE,TRUE,0,3334
-TRUE,TRUE,FALSE,FALSE,1,182
-""
-""
-""
-"Average % of liability covered by bond, by Tier Group"
-"tier","sum_liability2","sum_liability2_feestate","sum_liability2_atrisk","sum_liability2_feestate_atrisk","sum_bonds","liability2_pct","liability2_feestate_pct","liability2_atrisk_pct","liability2_feestate_atrisk_pct"
-"1",690150000,226575000,64800000,9300000,12325000,0.0178584365717598,0.0543969987862739,0.190200617283951,1.3252688172043
-"2",147750000,18225000,23775000,1200000,3573750,0.0241878172588832,0.196090534979424,0.150315457413249,2.978125
-"3",226650000,24750000,78900000,4275000,5575000,0.0245973968674167,0.225252525252525,0.070659062103929,1.30409356725146
-"No tier",56025000,23850000,36150000,15075000,13985000,0.249620705042392,0.586373165618449,0.38686030428769,0.927694859038143
-"Small operators (tot_BOE<1000000) N Wells:","1267"
-"Small operators (tot_BOE<1000000) State Well PCT:","0.084800214175758"
-"Small operators (tot_BOE<1000000) N At-Risk Wells:","1187"
-"Small operators (tot_BOE<1000000) State Well Inactive PCT:","0.0798734943812664"
-""
-""
-""
-"Sum of liabilities"
-"\"Sum of liability from small operators\"","liability1","liability2","liability3","liability4"
-"Sum of liability from small operators",47512500,95025000,47459073.0840801,94918146.1681602
-""
-""
-""
-"Small firms where marginal well liabilities exceed bonds (assuming $9/foot)"
-"n_firms","sum_bonds","sum_liability"
-25,9747500,35325000

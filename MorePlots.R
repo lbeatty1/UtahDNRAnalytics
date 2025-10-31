@@ -255,3 +255,29 @@ ggsave(paste0(code_dir, "Figures/N_wells.jpg"), plot_total, width = 6, height = 
 ggsave(paste0(code_dir, "Figures/N_wells_vinage.jpg"), plot_vintage, width = 7.23, height = 4, dpi = 300)
 
 
+### prod CDF
+cross_section = panel[date=='2023-01-01',]
+cross_section[is.na(BOE), BOE:=0]
+# Sort the data by BOE
+setorder(cross_section, BOE)
+
+# Calculate cumulative production and total production
+cross_section[, cum_prod := cumsum(BOE)]
+total_prod <- sum(cross_section$BOE, na.rm = TRUE)
+
+# Calculate cumulative percent of production
+cross_section[, cum_prod_pct := cum_prod / total_prod]
+
+ggplot(cross_section, aes(x = BOE, y = cum_prod_pct)) +
+  geom_line(color = "blue") +
+  scale_x_log10(
+    breaks = c(1, 10, 100, 1e3, 1e4, 1e5),
+    labels = scales::comma_format()
+  ) +
+  scale_y_continuous(labels = scales::percent_format()) +
+  labs(
+    x = "BOE (log scale)",
+    y = "Cumulative Percent of Total Production",
+    title = "CDF of Production by BOE"
+  ) +
+  theme_minimal()
