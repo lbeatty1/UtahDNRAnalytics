@@ -117,7 +117,7 @@ ggplot(mean_dif, aes(x = pct20_threshold, y = bond_dif, fill = pct20_threshold))
     "TRUE" = "Less than 20% At-Risk",
     "FALSE" = "Greater than 20% At-Risk"
   )) +
-  labs(x = NULL, y = "USD", title = "Average Difference Between Proposed and Old Bonding Amounts") +
+  labs(x = NULL, y = "USD", title = "Increase in Bonding Amounts Between Current and Proposed Rules") +
   theme_minimal(base_size = 13) +
   theme(legend.position = "none")
 ggsave(file.path(code_dir, "September25Redline", "Figs", "Current_Proposed_Mean_Difference.png"),
@@ -141,47 +141,96 @@ ggsave(file.path(code_dir, "September25Redline", "Figs", "Current_Proposed_Tier_
 ############
 ## Liability
 ##########3#
+ymax <- max(firms$liability, na.rm = TRUE) * 1.2
+
+# Fewer y grid lines: only 1, 3, and 10 per decade (instead of 1–9)
+y_exponents <- floor(log10(5e3)):ceiling(log10(ymax))
+y_major <- 10^y_exponents
+y_minor <- unlist(lapply(y_exponents, function(e) c(2, 4, 6,8) * 10^e))
+y_minor <- y_minor[y_minor >= 5e3 & y_minor <= ymax]
+
 ggplot(firms) +
   geom_point(aes(x = current_bond, y = liability)) +
-  geom_abline(intercept = 0, slope = 1) +
+  geom_abline(intercept = 0, slope = 1, color = "black") +
   
-  scale_y_log10(labels = scales::label_dollar(scale_cut = scales::cut_short_scale())) +
-  scale_x_log10(labels = scales::label_dollar(scale_cut = scales::cut_short_scale())) +
+  # X-axis: add 50,000 label explicitly
+  scale_x_log10(
+    labels = label_dollar(scale_cut = cut_short_scale()),
+    breaks = sort(unique(c(10^(2:8), 5e4))),   # ensure 50k is labeled
+    minor_breaks = unlist(lapply(2:8, function(e) (2:9) * 10^e))
+  ) +
+  
+  # Y-axis: fewer grid lines, starting at 5e3
+  scale_y_log10(
+    labels = label_dollar(scale_cut = cut_short_scale()),
+    breaks = y_major,
+    minor_breaks = y_minor
+  ) +
   
   coord_cartesian(
-    xlim = c(1e4, max(firms$current_bond, na.rm = TRUE) * 1.2),   # give 20% headroom
-    ylim = c(1e3, max(firms$liability, na.rm = TRUE) * 1.2)
+    xlim = c(1e4, max(firms$current_bond, na.rm = TRUE) * 1.2),
+    ylim = c(5e3, ymax)
   ) +
   
   labs(
-    color = "Firm Tier",
     x = "Current Bond (log scale)",
     y = "Fee/State Liabilities (log scale)",
     caption = "Black line drawn at y = x"
   ) +
-  theme_minimal()
+  
+  theme_minimal(base_size = 13) +
+  theme(
+    panel.grid.major = element_line(color = "grey80", linewidth = 0.5),
+    panel.grid.minor = element_line(color = "grey90", linewidth = 0.3)
+  )
+
 
 ggsave(file.path(code_dir, "September25Redline", "Figs", "Current_Liability_Scatter.png"),
        width=8,
        height=5)
 
-ggplot(firms)+
-  geom_point(aes(x=bond, y=liability, color=as.factor(tier)))+
-  geom_abline(intercept=0, slope=1)+
+ymax <- max(firms$liability, na.rm = TRUE) * 1.2
+y_exponents <- floor(log10(5e3)):ceiling(log10(ymax))
+y_major <- 10^y_exponents
+y_minor <- unlist(lapply(y_exponents, function(e) c(2, 4, 6,8) * 10^e))
+y_minor <- y_minor[y_minor >= 5e3 & y_minor <= ymax]
+
+ggplot(firms) +
+  geom_point(aes(x = bond, y = liability, color=as.factor(tier))) +
+  geom_abline(intercept = 0, slope = 1, color = "black") +
   
-  scale_y_log10(labels = label_dollar(scale_cut = cut_short_scale())) +
-  scale_x_log10(labels = label_dollar(scale_cut = cut_short_scale())) +
-  
-  coord_cartesian(
-    xlim = c(1e4, max(firms$bond, na.rm = TRUE) * 1.2),   # give 20% headroom
-    ylim = c(1e4, max(firms$liability, na.rm = TRUE) * 1.2)
+  # X-axis: add 50,000 label explicitly
+  scale_x_log10(
+    labels = label_dollar(scale_cut = cut_short_scale()),
+    breaks = sort(unique(c(10^(2:8), 5e4))),   # ensure 50k is labeled
+    minor_breaks = unlist(lapply(2:8, function(e) (seq(2,8,by=2)) * 10^e))
   ) +
   
-  labs(color = "Firm Tier",
-       x = "Proposed Bond (log scale)",
-       y = "Fee/State Liabilities (log scale)",
-       caption="Black line drawn at y=x")+
-  theme_minimal()
+  # Y-axis: fewer grid lines, starting at 5e3
+  scale_y_log10(
+    labels = label_dollar(scale_cut = cut_short_scale()),
+    breaks = y_major,
+    minor_breaks = y_minor
+  ) +
+  
+  coord_cartesian(
+    xlim = c(1e4, max(firms$bond, na.rm = TRUE) * 1.2),
+    ylim = c(5e3, ymax)
+  ) +
+  
+  labs(
+    x = "Current Bond (log scale)",
+    y = "Fee/State Liabilities (log scale)",
+    caption = "Black line drawn at y = x",
+    color="Tier"
+  ) +
+  
+  theme_minimal(base_size = 13) +
+  theme(
+    panel.grid.major = element_line(color = "grey80", linewidth = 0.5),
+    panel.grid.minor = element_line(color = "grey90", linewidth = 0.3)
+  )
+
 ggsave(file.path(code_dir, "September25Redline", "Figs", "Proposed_Liability_Scatter.png"),
        width=8,
        height=5)
