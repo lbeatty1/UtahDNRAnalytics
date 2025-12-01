@@ -20,7 +20,7 @@ data_dir = 'Data/'
 code_dir = 'UtahDNRAnalytics/'
 
 # Connect to supplementary functions file 'bond_funs.R'
-source(paste(code_dir, "bond_funs.R", sep=''))
+# source(paste(code_dir, "bond_funs.R", sep=''))
 
 # Call data files downloaded previously from UT OGM (see main directory + all documentation readmes at: https://oilgas.ogm.utah.gov/oilgasweb/data-center/dc-main.xhtml#download)
 
@@ -193,8 +193,10 @@ base_theme <- theme_minimal() +
   theme(
     legend.position = "right",
     legend.box = "vertical",
-    legend.title = element_text(size = 10),
-    legend.text = element_text(size = 8),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12),
+    axis.title = element_text(size=14),
+    axis.text = element_text(size=12),
     plot.margin = margin(10, 10, 10, 10)  # Consistent margins
   )
 
