@@ -202,8 +202,8 @@ ggplot(firms) +
   # X-axis: add 50,000 label explicitly
   scale_x_log10(
     labels = label_dollar(scale_cut = cut_short_scale()),
-    breaks = sort(unique(c(10^(2:8), 5e4))),   # ensure 50k is labeled
-    minor_breaks = unlist(lapply(2:8, function(e) (seq(2,8,by=2)) * 10^e))
+    breaks = sort(unique(c(10^(2:8)))),
+    minor_breaks = unlist(lapply(2:8, function(e) (seq(1,9,by=1)) * 10^e))
   ) +
   
   # Y-axis: fewer grid lines, starting at 5e3
@@ -219,7 +219,7 @@ ggplot(firms) +
   ) +
   
   labs(
-    x = "Current Bond (log scale)",
+    x = "Proposed Bond (log scale)",
     y = "Fee/State Liabilities (log scale)",
     caption = "Black line drawn at y = x",
     color="Tier"
