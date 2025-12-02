@@ -182,7 +182,7 @@ ggplot(firms) +
     caption = "Black line drawn at y = x"
   ) +
 
-  theme_minimal(base_size = 13) +
+  theme_minimal(base_size = 18) +
   theme(
     panel.grid.major = element_line(color = "grey80", linewidth = 0.5),
     panel.grid.minor = element_line(color = "grey90", linewidth = 0.3)
@@ -229,7 +229,7 @@ ggplot(firms) +
     color="Tier"
   ) +
 
-  theme_minimal(base_size = 13) +
+  theme_minimal(base_size = 18) +
   theme(
     panel.grid.major = element_line(color = "grey80", linewidth = 0.5),
     panel.grid.minor = element_line(color = "grey90", linewidth = 0.3)
