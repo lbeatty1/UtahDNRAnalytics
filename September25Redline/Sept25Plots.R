@@ -14,15 +14,15 @@ library(data.table)
 
 
 ######################################
-## GENERAL OUTLINE OF PROCEDURE ###### 
+## GENERAL OUTLINE OF PROCEDURE ######
 ## (updated Oct 2025 ) ###############
 # 1. Read, clean, format data from UT DNR - wells and production data
 # 2. Compile production data for the year from 01/2024 through 12/2024
 # 3. Create flags for each well characteristic relevant to bonding schedule:
-#      - BOE/day production average (determining marginal well status); 
+#      - BOE/day production average (determining marginal well status);
 #      - status/type factors for "Active Well" and "At-risk Well" classification;
 #      - depth of boreholes for liability calculation
-# 4. By operator, sum over wells to figure out how many wells of each type they own, 
+# 4. By operator, sum over wells to figure out how many wells of each type they own,
 #      - this + status factors above is used to assign tiers for blanket+indiv. liabilities
 # 5. Calculate size of bond responsibility for each operator based on assigned tier
 # 6. Calculate predicted plugging liabilities for each well using a couple different assumptions
@@ -71,16 +71,16 @@ total[, variable := factor(
 
 ggplot(total, aes(x = variable, y = value, fill = variable)) +
   geom_col(color = "black") +
-  
+
   scale_y_continuous(labels = label_dollar(scale_cut = cut_short_scale())) +
-  
+
   scale_fill_manual(values = c(
     "Fee/State Liabilities" = "#d95f02",
     "Fee/State At-Risk Liabilities" = "#d95f02",
     "Current Bond" = "#1b9e77",
     "Redline Bond" = "#1b9e77"
   )) +
-  
+
   labs(x = NULL, y = "USD", title = "Liabilities and Bonds") +
   theme_minimal(base_size = 13) +
   theme(legend.position = "none")
@@ -111,15 +111,19 @@ mean_dif = mean_dif[,.(
 
 ggplot(mean_dif, aes(x = pct20_threshold, y = bond_dif, fill = pct20_threshold)) +
   geom_col(color = "black") +
-  
   scale_y_continuous(labels = label_dollar(scale_cut = cut_short_scale())) +
   scale_x_discrete(labels = c(
     "TRUE" = "Less than 20% At-Risk",
     "FALSE" = "Greater than 20% At-Risk"
   )) +
-  labs(x = NULL, y = "USD", title = "Increase in Bonding Amounts Between Current and Proposed Rules") +
+  labs(x = NULL, y = "USD", title = "Mean Increase in Bonding Amounts Between\nCurrent and Proposed Rules") +
   theme_minimal(base_size = 13) +
-  theme(legend.position = "none")
+  theme(
+    legend.position = "none",
+    axis.text = element_text(size = 18),
+    axis.title.y = element_text(size = 20),
+    plot.title = element_text(size = 22)
+  )
 ggsave(file.path(code_dir, "September25Redline", "Figs", "Current_Proposed_Mean_Difference.png"),
        width=8,
        height=5)
@@ -152,32 +156,32 @@ y_minor <- y_minor[y_minor >= 5e3 & y_minor <= ymax]
 ggplot(firms) +
   geom_point(aes(x = current_bond, y = liability)) +
   geom_abline(intercept = 0, slope = 1, color = "black") +
-  
+
   # X-axis: add 50,000 label explicitly
   scale_x_log10(
     labels = label_dollar(scale_cut = cut_short_scale()),
     breaks = sort(unique(c(10^(2:8), 5e4))),   # ensure 50k is labeled
     minor_breaks = unlist(lapply(2:8, function(e) (2:9) * 10^e))
   ) +
-  
+
   # Y-axis: fewer grid lines, starting at 5e3
   scale_y_log10(
     labels = label_dollar(scale_cut = cut_short_scale()),
     breaks = y_major,
     minor_breaks = y_minor
   ) +
-  
+
   coord_cartesian(
     xlim = c(1e4, max(firms$current_bond, na.rm = TRUE) * 1.2),
     ylim = c(5e3, ymax)
   ) +
-  
+
   labs(
     x = "Current Bond (log scale)",
     y = "Fee/State Liabilities (log scale)",
     caption = "Black line drawn at y = x"
   ) +
-  
+
   theme_minimal(base_size = 13) +
   theme(
     panel.grid.major = element_line(color = "grey80", linewidth = 0.5),
@@ -198,33 +202,33 @@ y_minor <- y_minor[y_minor >= 5e3 & y_minor <= ymax]
 ggplot(firms) +
   geom_point(aes(x = bond, y = liability, color=as.factor(tier))) +
   geom_abline(intercept = 0, slope = 1, color = "black") +
-  
+
   # X-axis: add 50,000 label explicitly
   scale_x_log10(
     labels = label_dollar(scale_cut = cut_short_scale()),
     breaks = sort(unique(c(10^(2:8)))),
     minor_breaks = unlist(lapply(2:8, function(e) (seq(1,9,by=1)) * 10^e))
   ) +
-  
+
   # Y-axis: fewer grid lines, starting at 5e3
   scale_y_log10(
     labels = label_dollar(scale_cut = cut_short_scale()),
     breaks = y_major,
     minor_breaks = y_minor
   ) +
-  
+
   coord_cartesian(
     xlim = c(1e4, max(firms$bond, na.rm = TRUE) * 1.2),
     ylim = c(5e3, ymax)
   ) +
-  
+
   labs(
     x = "Proposed Bond (log scale)",
     y = "Fee/State Liabilities (log scale)",
     caption = "Black line drawn at y = x",
     color="Tier"
   ) +
-  
+
   theme_minimal(base_size = 13) +
   theme(
     panel.grid.major = element_line(color = "grey80", linewidth = 0.5),
@@ -234,4 +238,3 @@ ggplot(firms) +
 ggsave(file.path(code_dir, "September25Redline", "Figs", "Proposed_Liability_Scatter.png"),
        width=8,
        height=5)
-
