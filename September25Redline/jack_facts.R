@@ -69,6 +69,18 @@ ggplot(well_counts[state %in% c("Utah", "Colorado", "New Mexico")], aes(x = yrs_
     legend.text = element_text(size = 12)
   )
 
+year_summary = unique(well_counts[!is.na(min_threshold_yr), .(state, min_threshold_yr)])
+
+kable(
+  year_summary[state %in% c("Utah", "Colorado", "New Mexico", "Texas")],
+  "latex",
+  booktabs = T,
+  caption = "Year of Passing 5,000 Cumulative Wells",
+  col.names = c("State", "Year")
+) |>
+  save_kable("UtahDNRAnalytics/September25Redline/cumulative_table.tex")
+
+
 
 ggsave(
   filename = file.path("UtahDNRAnalytics/September25Redline/Figs/Threshold_Timeseries.png"),
