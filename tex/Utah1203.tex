@@ -11,7 +11,7 @@
 \usepackage{hyperref}
 \usepackage{color}
 %Information to be included in the title page:
-\title{Proposed Financial Assurance Amounts are Timely and Proportionate to Risk}
+\title{Utah’s Opportunity: Closing the Liability Gap with Evidence-Based Policy}
 \author{Lauren Beatty, PhD\\ \href{mailto:lbeatty@edf.org}{lbeatty@edf.org}}
 \institute{Environmental Defense Fund}
 \date{December 3, 2025}
@@ -35,14 +35,29 @@
 
 \frame{\titlepage}
 
+
 \begin{frame}{Utah's Current Landscape: Threats and Opportunities}
-    
-    \includegraphics[trim={0 0 500px 0}, clip, height=3.2cm]{Figures/N_wells_vinage.jpg}
-    \includegraphics[height=3.2cm]{Figures/OilProduction_vintage.jpg}
+
+    % The outer box matches text width, the inner box matches paper width.
+    % This forces the content to center relative to the physical screen edges.
+    \makebox[\textwidth][c]{%
+        \makebox[\paperwidth]{%
+            \includegraphics[trim={0 0 500px 0}, clip, height=3.8cm]{Figures/N_wells_vinage.jpg}%
+            \hspace{0.1cm}% Adjust this gap to push images apart or pull together
+            \includegraphics[height=3.8cm]{Figures/OilProduction_vintage.jpg}%
+        }%
+    }
+
+    \vspace{0.5em} % Adds a little buffer before the text starts
+
     \begin{itemize}
         \item Utah's well population is aging. Making sure that there is sufficient funds to plug all of these in the future is a challenge for policy \textbf{today}.
         \item New wells account for the majority of production in the state. Production from old wells continues to decline.
     \end{itemize}
+\end{frame}
+
+\begin{frame}{Utah Is Not Immune to Orphan Wells}
+    
 \end{frame}
 
 \begin{frame}{Economics and Public Policy Research}
