@@ -63,13 +63,18 @@ ggplot(well_counts[state %in% c("Utah", "Colorado", "New Mexico")], aes(x = yrs_
   ) +
   scale_y_continuous(labels = comma) +
   theme(
-    axis.title = element_text(size = 14),
-    axis.text = element_text(size = 12),
-    legend.title = element_text(size = 14),
-    legend.text = element_text(size = 12)
+    axis.title = element_text(size = 18),
+    axis.text = element_text(size = 14),
+    legend.title = element_text(size = 18),
+    legend.text = element_text(size = 16)
   )
 
-year_summary = unique(well_counts[!is.na(min_threshold_yr), .(state, min_threshold_yr)])
+ggsave(
+  filename = file.path("UtahDNRAnalytics/September25Redline/Figs/Threshold_Timeseries.png"),
+  width = 6,
+  height = 4,
+  dpi = 300
+)
 
 kable(
   year_summary[state %in% c("Utah", "Colorado", "New Mexico", "Texas")],
@@ -80,14 +85,10 @@ kable(
 ) |>
   save_kable("UtahDNRAnalytics/September25Redline/cumulative_table.tex")
 
+year_summary <- unique(well_counts[!is.na(min_threshold_yr), .(state, min_threshold_yr)])
 
 
-ggsave(
-  filename = file.path("UtahDNRAnalytics/September25Redline/Figs/Threshold_Timeseries.png"),
-  width = 6,
-  height = 4,
-  dpi = 300
-)
+
 
 ## break out by basins
 ut_wells = wellbores[state=="Utah"]
